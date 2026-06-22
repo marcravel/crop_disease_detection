@@ -3,14 +3,14 @@
 ## Phase Breakdown
 
 ### Phase 0 — Environment Verification
-**Days:** 1 (should already be done — confirm, don't redo)
-**Objective:** Confirm the environment is not a future bottleneck.
-**Deliverables:**
-- `torch.cuda.is_available()` returns `True`, confirmed VRAM ≥4GB
-- Project skeleton exists: `data/`, `src/`, `notebooks/`
-- `requirements.txt` committed
-**Failure risks:** Re-debugging environment issues mid-training phase. Driver/CUDA mismatches resurface after system updates.
-**Exit condition:** A trivial script (`torch.randn(10,10).cuda()`) runs without error. Move on immediately — do not polish this phase.
+**Purpose:** Ensure the local setup is stable before any model or data work begins.
+**Checklist:**
+- Confirm GPU access is working (`torch.cuda.is_available()` should be `True`) and available VRAM is at least 4GB.
+- Confirm required project folders exist (`data/`, `src/`, `notebooks/`).
+- Confirm `requirements.txt` is present and tracked.
+- Run a minimal CUDA sanity check (`torch.randn(10,10).cuda()`) without errors.
+**Failure risks:** Driver/CUDA mismatches or environment drift can interrupt later training phases.
+**Completion rule:** Once all checks pass, freeze environment changes and proceed to Phase 1 without further tuning.
 
 ---
 
