@@ -12,9 +12,20 @@ transform = transforms.Compose([
 DATA_DIR = "data/PlantVillage"
 plant_dataset = datasets.ImageFolder(DATA_DIR, transform)
 
-for data in plant_dataset.classes:
-    print(data)
-print()
+# #Print class names inside the plant_dataset
+# for data in plant_dataset.classes:
+#     print(data)
+# print()
 
-for key, value in plant_dataset.class_to_idx.items():
-    print(f"{key} | idx={value}")
+# #Print mapping
+# for key, value in plant_dataset.class_to_idx.items():
+#     print(f"{key} | idx={value}")
+    
+data_loader = torch.utils.data.DataLoader(dataset=plant_dataset,
+                                          batch_size=16,
+                                          shuffle=True,
+                                          num_workers=2)
+
+images, labels = next(iter(data_loader))
+print(f"Images' shape: {images.shape}, labels' shape: {labels.shape}")
+
