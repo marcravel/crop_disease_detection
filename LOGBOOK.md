@@ -13,17 +13,16 @@
 
 ## Day 1 — June 22, 2026
 
-**Planned:** Set up project environment, define structure, and acquire dataset
-**Done:** Initialized project repository and created a structured project layout (`data/`, `src/`, `notebooks/`, `configs/`). Created `plan.md` outlining the 20-day internship roadmap. Downloaded and extracted the PlantVillage/PlantDisease dataset (emmarex version). Inspected dataset structure and confirmed it contains 15 classes across 3 crops (Tomato, Potato, Pepper), organized in a format compatible with PyTorch `ImageFolder`. Reviewed multiple Kaggle PlantVillage variants and validated current dataset suitability for a controlled classification experiment under compute constraints.
-**Blockers:** Initial ambiguity regarding dataset selection (full PlantVillage vs reduced subset). Resolved by proceeding with the current dataset for a focused 15-class experimental setup aligned with hardware and timeline constraints.
-**Tomorrow:** Clean and validate dataset paths, check image integrity, implement PyTorch `ImageFolder` loader, and run a first batch iteration test to confirm pipeline stability.
+**Planned:** Set up environment, project structure, acquire dataset
+**Done:** Repo initialized, structure created (data/, src/, notebooks/, checkpoints/, results/). PLAN.md written. Fixed CUDA driver issue (driver installed but not loaded — modprobe fix). Confirmed GPU working (GTX 1050 Ti, 4GB VRAM, CUDA 11.8). Evaluated multiple PlantVillage Kaggle versions, chose emmarex/plantdisease (15 classes: Tomato, Potato, Pepper) over full 38-class version — faster iteration given 20-day timeline. Downloaded, extracted, verified folder structure matches ImageFolder requirements.
+**Blockers:** CUDA driver not loading after install — resolved same day. Dataset version ambiguity — resolved by choosing 15-class subset, documented reasoning.
+**Tomorrow:** Write dataset.py (ImageFolder loader, transforms, train/val/test split), validate by loading one batch.
 
 ---
 
 ## Gün 1 — 22 Haziran 2026
 
-**Planlanan:** Proje ortamını kurmak, klasör yapısını oluşturmak ve veri setini edinmek
-**Yapılan:** Proje repository’si oluşturuldu ve düzenli bir proje klasör yapısı kuruldu (`data/`, `src/`, `notebooks/`, `configs/`). 20 günlük staj planını içeren `plan.md` dosyası hazırlandı. PlantVillage/PlantDisease veri seti (emmarex versiyonu) indirildi ve çıkarıldı. Veri seti yapısı incelendi ve 3 bitki türü (Tomato, Potato, Pepper) altında 15 sınıftan oluştuğu doğrulandı. Yapı PyTorch `ImageFolder` kullanımı için uygun bulundu. Birden fazla Kaggle PlantVillage versiyonu analiz edildi ve mevcut veri seti, donanım ve zaman kısıtları altında kontrollü bir deney için uygun olarak değerlendirildi.
-**Engeller:** Veri seti seçimi konusunda başlangıçta belirsizlik (tam PlantVillage vs indirgenmiş sürüm). Bu durum mevcut 15 sınıflı veri seti ile devam edilerek çözüldü.
-**Yarın:** Veri seti yollarının temizlenmesi ve doğrulanması, görüntü bütünlüğünün kontrol edilmesi, PyTorch `ImageFolder` veri yükleyicisinin kurulması ve ilk batch testinin çalıştırılması.
-
+**Planlanan:** Ortam kurulumu, proje yapısı, veri seti edinimi
+**Yapılan:** Repo oluşturuldu, klasör yapısı kuruldu (data/, src/, notebooks/, checkpoints/, results/). PLAN.md yazıldı. CUDA driver sorunu çözüldü (driver yüklüydü ama aktif değildi — modprobe ile düzeltildi). GPU doğrulandı (GTX 1050 Ti, 4GB VRAM, CUDA 11.8). Birden fazla PlantVillage versiyonu değerlendirildi, emmarex/plantdisease seçildi (15 sınıf: Tomato, Potato, Pepper) — 20 günlük süre için tam 38 sınıflı versiyondan daha hızlı. Veri seti indirildi, klasör yapısı ImageFolder ile uyumlu doğrulandı.
+**Engeller:** CUDA driver yüklenmiyordu — aynı gün çözüldü. Veri seti versiyon belirsizliği — 15 sınıflı alt küme seçilerek çözüldü.
+**Yarın:** dataset.py yazılacak (ImageFolder loader, transformlar, train/val/test split), bir batch yükleyerek doğrulama yapılacak.
