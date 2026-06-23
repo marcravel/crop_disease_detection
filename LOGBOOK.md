@@ -26,3 +26,26 @@
 **Yapılan:** Repo oluşturuldu, klasör yapısı kuruldu (data/, src/, notebooks/, checkpoints/, results/). PLAN.md yazıldı. CUDA driver sorunu çözüldü (driver yüklüydü ama aktif değildi — modprobe ile düzeltildi). GPU doğrulandı (GTX 1050 Ti, 4GB VRAM, CUDA 11.8). Birden fazla PlantVillage versiyonu değerlendirildi, emmarex/plantdisease seçildi (15 sınıf: Tomato, Potato, Pepper) — 20 günlük süre için tam 38 sınıflı versiyondan daha hızlı. Veri seti indirildi, klasör yapısı ImageFolder ile uyumlu doğrulandı.
 **Engeller:** CUDA driver yüklenmiyordu — aynı gün çözüldü. Veri seti versiyon belirsizliği — 15 sınıflı alt küme seçilerek çözüldü.
 **Yarın:** dataset.py yazılacak (ImageFolder loader, transformlar, train/val/test split), bir batch yükleyerek doğrulama yapılacak.
+
+--- 
+
+## Gün 2 — 23 Haziran 2026
+
+**Planlanan:** 
+- `src/dataset.py` dosyasının oluşturulması, temel veri ön işleme (transform) adımlarının tanımlanması ve veri kümesinin yüklenmesi.
+- Veri yükleme boru hattının (DataLoader) test edilmesi ve veri boyutlarının doğrulanması.
+
+**Yapılan:** 
+- ImageNet ortalama ve standart sapma değerleri kullanılarak `transforms.Compose` ile temel normalizasyon ve boyutlandırma (224x224) adımları yazıldı.
+- `datasets.ImageFolder` kullanılarak `data/PlantVillage` dizinindeki 15 sınıflı veri kümesi başarıyla yüklendi.
+- Sınıf isimleri ve bunlara karşılık gelen indeks eşleştirmeleri (`class_to_idx`) ekrana yazdırılarak doğrulandı.
+- `batch_size=16` ve `num_workers=2` parametreleri ile `DataLoader` örneği oluşturuldu.
+- `next(iter(data_loader))` mekanizması ile ilk veri grubu (batch) çekildi; görüntülerin $[16, 3, 224, 224]$ ve etiketlerin $[16]$ boyutlarında olduğu doğrulanarak veri boru hattı başarıyla tamamlandı.
+
+**Engeller:** 
+- Gemini 2.5 Flash modelinde günlük ücretsiz istek sınırı (20 RPD) aşıldı ve `RESOURCE_EXHAUSTED` (HTTP 429) hatası alındı.
+- Groq API üzerinden inline autocomplete (kod tamamlama) kullanılırken yüksek frekanslı istekler sebebiyle TPM (Tokens Per Minute) sınırı aşıldı; sorun otomatik tamamlama özelliği kapatılarak ve `.continue/rules/project-constraints.md` dosyası küçültülerek çözüldü.
+
+**Yarın:** 
+- `full_dataset` nesnesinin rastgele (random_split) %80 Eğitim, %10 Doğrulama (Validation) ve %10 Test olarak bölütlenmesi mantığının kurulması.
+- Rastgele bölütleme sırasında tekrarlanabilirliği sağlamak adına generator ve seed yapılarının entegre edilmesi.
