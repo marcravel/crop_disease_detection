@@ -48,4 +48,5 @@ Ortam kurulumu, proje dizin mimarisinin inşası ve donanım kısıtlamalarına 
 ## Gün 3
 
 **Öğrenilen:** 
-- Geliştirici API kotalarının (Tier 1/2/3), son kullanıcı abonelik paketlerinden (Google One) tamamen bağımsız olduğu ve doğrudan Google Cloud faturalandırma altyapısına bağlı çalıştığı anlaşıldı.
+- Google Cloud API geliştirici kotalarının tüketici aboneliklerinden (Google One) tamamen bağımsız çalıştığı, faturalandırma katmanına (Tier 1) geçişin ücretsiz kullanım hakkını iptal ettiği ve kota aşımlarının HTTP 429/503 erişim engelleriyle sonuçlandığı deneyimlendi. Geliştirme süreçlerindeki bu ağ darboğazlarını aşmak için Groq/Llama3 gibi sağlayıcıdan bağımsız, yedekli LLM altyapılarının (fallback) Continue gibi araçlara entegre edilmesinin önemi kavrandı. Yazılım mimarisi tarafında ise, veri seti bölütleme (random_split) esnasında veri sızıntısını (data leakage) engellemek ve eğitim süreçlerinde matematiksel tekrarlanabilirliği (reproducibility) garanti altına almak için torch.Generator().manual_seed() mekanizması ile bellek durumunun (state) nasıl sabitlendiği öğrenildi.
+- 
