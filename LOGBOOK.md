@@ -42,3 +42,10 @@ Ortam kurulumu, proje dizin mimarisinin inşası ve donanım kısıtlamalarına 
 
 **Sonraki Adım:** 
 - `full_dataset` nesnesinin tekrarlanabilirlik (manual_seed) gözetilerek `random_split` mekanizması ile %80 Eğitim, %10 Doğrulama, %10 Test olarak ayrıştırılması.
+
+---
+
+## Gün 3
+
+**Öğrenilen:** 
+- Geliştirici API kotalarının (Tier 1/2/3), son kullanıcı abonelik paketlerinden (Google One) tamamen bağımsız olduğu ve doğrudan Google Cloud faturalandırma altyapısına bağlı çalıştığı anlaşıldı.
