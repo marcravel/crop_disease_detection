@@ -17,6 +17,7 @@ plant_dataset = datasets.ImageFolder(DATA_DIR, transform)
 #     print(data)
 # print()
 
+print(f"Class numbers: {len(plant_dataset.classes)}")
 #Print mapping
 for key, value in plant_dataset.class_to_idx.items():
     print(f"{key} | idx={value}")
@@ -30,13 +31,33 @@ total_len = len(plant_dataset)
 train_size = int(total_len * 0.80)
 val_size = int(total_len * 0.10)
 test_size = total_len - (train_size + val_size)
-
 print("-----------------------")
 print(f"Total_len: {total_len}")
 print(f"Train_size: {train_size}")
 print(f"val_size: {val_size}")
 print(f"test_size: {test_size}")
+print(f"{test_size + train_size + val_size} =? {total_len}")
 print("-----------------------")
 
-print(f"Class numbers: {len(plant_dataset.classes)}")
+# Gun 3:
+generator = torch.Generator()
+generator.manual_seed(2)
 
+train_set, val_set, test_set = torch.utils.data.random_split(plant_dataset,
+                                                             [train_size, val_size, test_size],
+                                                             generator=generator)
+
+train_dataloader = torch.utils.data.DataLoader(dataset=train_set,
+                                               batch_size=32,
+                                               shuffle=True,
+                                               num_workers=2)
+val_dataloader = torch.utils.data.DataLoader(dataset=val_set,
+                                               batch_size=32,
+                                               shuffle=False,
+                                               num_workers=2)
+test_dataloader = torch.utils.data.DataLoader(dataset=test_set,
+                                               batch_size=32,
+                                               shuffle=False,
+                                               num_workers=2)
+
+print(f"Batch count: train={len(train_dataloader)}, val={len(val_dataloader)}, test={len(test_dataloader)}")
