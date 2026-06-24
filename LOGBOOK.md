@@ -47,9 +47,36 @@ Ortam kurulumu, proje dizin mimarisinin inşası ve donanım kısıtlamalarına 
 
 ## Gün 3
 
-**Öğrenilen:** 
-- Google Cloud API geliştirici kotalarının tüketici aboneliklerinden (Google One) tamamen bağımsız çalıştığı, faturalandırma katmanına (Tier 1) geçişin ücretsiz kullanım hakkını iptal ettiği ve kota aşımlarının HTTP 429/503 erişim engelleriyle sonuçlandığı deneyimlendi. Geliştirme süreçlerindeki bu ağ darboğazlarını aşmak için Groq/Llama3 gibi sağlayıcıdan bağımsız, yedekli LLM altyapılarının (fallback) Continue gibi araçlara entegre edilmesinin önemi kavrandı. Yazılım mimarisi tarafında ise, veri seti bölütleme (random_split) esnasında veri sızıntısını (data leakage) engellemek ve eğitim süreçlerinde matematiksel tekrarlanabilirliği (reproducibility) garanti altına almak için torch.Generator().manual_seed() mekanizması ile bellek durumunun (state) nasıl sabitlendiği öğrenildi.
-- torch.utils.data.random_split ile veri seti %80 eğitim, %10 doğrulama, %10 test olarak sabit uzunluklarda bölünür; torch.Generator().manual_seed() kullanarak bu bölünmenin her çalıştırmada aynı rastgele indeksleri üretmesi sağlanır ve böylece reproducible (tekrarlanabilir) veri seti oluşturulur.
-- DataLoader uzunluğu, ilgili Subset’in örnek sayısının batch_size’a bölünmesiyle elde edilen (yukarı yuvarlanmış) tam sayıdır; bu yüzden yalnızca eğitim DataLoader’ı shuffle=True ile karıştırılır, doğrulama ve test loader’ları sabit sıralamada kalır.
-- Subset nesneleri, orijinal ImageFolder veri setine bir referans tutar; dolayısıyla aynı transformasyonlar ve sınıf‑etiket haritalaması paylaşılır, ancak her DataLoader yalnızca kendisine atanmış indeksleri kullanır.
-- random_split’e sağlanan torch.Generator’ın manual_seed ile ayarlanması, rastgele indeks seçim sürecini deterministik bir kaynağa bağlar; aynı seed tekrar kullanıldığında veri setinin aynı eğitim/validasyon/test bölmeleri yeniden üretilir.
+**Yapılan:**
+- `src/dataset.py` içerisinde `transforms.Compose` ile Resize (224x224), ToTensor ve ImageNet normalizasyon (`MEAN_VALUE`, `STD_VALUE`) tanımlandı; `datasets.ImageFolder` ile veri seti hiyerarşisi taranarak `class_to_idx` eşleştirmesi oluşturuldu.
+- `torch.utils.data.random_split` ile veri seti %80 eğitim, %10 doğrulama, %10 test olacak şekilde sabit uzunluklarda bölündü; `torch.Generator().manual_seed(SEED)` kullanılarak bölünmenin her çalıştırmada aynı indeksleri üretmesi sağlandı.
+- `train_dataloader`, `val_dataloader`, `test_dataloader` nesneleri `batch_size=16` ile oluşturuldu; yalnızca eğitim loader'ı `shuffle=True` olarak ayarlandı, doğrulama ve test loader'ları sabit sıralamada bırakıldı.
+- `src/train.py` dosyası oluşturuldu; `from src.dataset import ...` yapısı ile dataloader'lar içe aktarıldı (proje kökünden `python -m src.train` komutu ile çalıştırılarak modül yolu sorunu çözüldü).
+- Pretrained ResNet-18 (`weights="IMAGENET1K_V1"`) yüklendi, son `fc` katmanı PlantVillage'daki 15 sınıfa uyacak şekilde değiştirildi.
+- `torch.nn.CrossEntropyLoss` ve Adam optimizer tanımlandı; eğitim döngüsü bir epoch boyunca `train_dataloader` üzerinde forward, loss hesaplama, backward ve optimizer step adımlarını çalıştıracak şekilde yazıldı ve ortalama kayıp (loss) terminale yazdırıldı.
+- `notebooks/01_data_exploration.ipynb` dosyası oluşturuldu; `sys.path.append("..")` ile proje köküne erişim sağlanarak `src.dataset` içe aktarıldı.
+- `next(iter(train_dataloader))` ile bir batch çekildi; görüntü tensörünün `[16, 3, 224, 224]`, etiket tensörünün `[16]` boyutunda olduğu doğrulandı.
+- `class_to_idx` sözlüğü ters çevrilerek (`idx_to_class`) etiket indekslerinden sınıf isimlerine dönüşüm sağlandı.
+- Normalizasyonun tersini alan (`img * std + mean`) bir fonksiyon yazıldı; `mean`/`std` `(3,1,1)` boyutuna `reshape` edilerek broadcasting uyumu sağlandı, `permute(1,2,0)` ile kanal sırası `(H,W,C)`'ye çevrildi, `np.clip(0,1)` ile değer aralığı sınırlandırıldı.
+- `show_image()` fonksiyonu ile `plt.subplots(3,3)` üzerinden 9 görüntülük bir grid oluşturuldu; tüm görüntülerin doğru renkte ve doğru etiketle göründüğü görsel olarak teyit edildi — pipeline'ın transform, normalizasyon ve sınıf eşleştirme aşamalarının uçtan uca doğru çalıştığı kanıtlandı.
+
+**Öğrenilenler:**
+- Python'da farklı dosyalar arasında kod ve nesneleri paylaşmak için `from <modül_adı> import <nesne_adı>` yapısı kullanılır; bu, C'deki `#include` gibi metin yapıştırma değildir — modül bir defa çalıştırılıp `sys.modules` içinde önbelleğe alınır.
+- `random_split`'e sağlanan `torch.Generator`'ın `manual_seed` ile ayarlanması, rastgele indeks seçim sürecini deterministik bir kaynağa bağlar; aynı seed tekrar kullanıldığında veri setinin aynı eğitim/validasyon/test bölmeleri yeniden üretilir. Seed yalnızca deterministik bir başlangıç noktasıdır.
+- `Subset` nesneleri orijinal `ImageFolder` veri setine referans tutar; dolayısıyla aynı transformasyonlar ve sınıf-etiket haritalaması paylaşılır, ancak her `DataLoader` yalnızca kendisine atanmış indeksleri kullanır.
+- `DataLoader` uzunluğu, ilgili `Subset`'in örnek sayısının `batch_size`'a bölünmesiyle (yukarı yuvarlanarak) elde edilir.
+- Eğitim döngüsünün yalnızca bir epoch çalıştırılarak kaybın azaldığının doğrulanması, sonraki aşamalara geçiş için temel mekanizmayı kurar.
+- Notebook'un çalışma dizini (`cwd`) ile script'in çalıştırıldığı dizin arasındaki farkın `import` hatalarına yol açabildiği; `os.chdir()`'in durum bağımlı (stateful) ve riskli olduğu, `sys.path.append()`'in ise yan etkisiz olduğu için tercih edilmesi gerektiği deneyimlendi.
+- Modül diskte değişse bile aynı kernel oturumunda eski halinin önbellekte tutulduğu, bu yüzden `importlib.reload()` gerekliliği gözlemlendi.
+- Tensör broadcasting kurallarının boyutları sağdan sola hizaladığı; `(3,)` boyutundaki bir vektörün `(3,224,224)` ile kanal bazında çarpılabilmesi için `(3,1,1)`'e `reshape` edilmesi gerektiği matematiksel olarak kanıtlandı.
+- `.reshape()`, `.permute()` gibi tensör metodlarının yerinde (in-place) değişiklik yapmadığı; dönüş değerinin değişkene atanması gerektiği, atanmadığında işlemin sessizce kaybolduğu gözlemlendi.
+- Bir metodun referansını yazmak (`.item`) ile çağırmak (`.item()`) arasındaki farkın kritik bir hata kaynağı olduğu deneyimlendi.
+- `plt.imshow()` (global/örtük) ile `ax.imshow()` (belirli bir subplot'a açık referans) arasındaki farkın, çoklu subplot grid'lerinde doğru görselleştirme için zorunlu olduğu öğrenildi.
+- Google Cloud API geliştirici kotalarının tüketici aboneliklerinden (Google One) tamamen bağımsız çalıştığı, faturalandırma katmanına (Tier 1) geçişin ücretsiz kullanım hakkını iptal ettiği ve kota aşımlarının HTTP 429/503 erişim engelleriyle sonuçlandığı deneyimlendi. Bu ağ darboğazlarını aşmak için Groq/Llama3 gibi sağlayıcıdan bağımsız, yedekli LLM altyapılarının (fallback) Continue gibi araçlara entegre edilmesinin önemi kavrandı.
+
+**Engeller:**
+- Notebook'un çalışma dizini ile proje kökü arasındaki farktan kaynaklanan `ModuleNotFoundError: No module named 'src'` hatası alındı; `sys.path` manipülasyonu ile çözüldü.
+- Ardışık `os.chdir("..")` çağrıları sonucu çalışma dizini proje kökünün dışına (Ubuntu kök dizinine kadar) çıkıldı; kernel yeniden başlatılarak ve mutlak yol ile düzeltildi.
+- `dataset.py` dosyasına eklenen yeni değişkenlere (`MEAN_VALUE`, `STD_VALUE`) notebook'ta erişilememesi, modül önbelleğinden (`sys.modules`) kaynaklandı; `importlib.reload()` ile çözüldü.
+- Gemini API günlük kota (20 RPD) sınırı aşılarak HTTP 429 hatası alındı.
+- Groq API üzerinden inline autocomplete kullanılırken yüksek frekanslı istekler sebebiyle TPM sınırı aşıldı; otonom kod tamamlama özelliği kapatılarak ve prompt dosyası küçültülerek çözüldü.

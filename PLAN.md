@@ -44,7 +44,7 @@
 **Days:** 7–11
 **Objective:** Train the actual model on the full 38-class dataset.
 **Deliverables:**
-- `src/model.py`: ResNet18 (`weights="IMAGENET1K_V1"`), final `fc` layer replaced for 38 classes
+- `src/model.py`: ResNet18 (`weights="IMAGENET1K_V1"`), final `fc` layer replaced for 15 classes
 - Full training run, checkpointed (`torch.save`) at best validation accuracy
 - Training/validation loss and accuracy curves logged (simple CSV or matplotlib plot — no MLflow needed at this scope)
 - Batch size tuned to your 4GB VRAM ceiling — start at 16, increase only if `nvidia-smi` shows headroom

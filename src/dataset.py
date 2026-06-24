@@ -2,11 +2,17 @@ import torch
 from torchvision import transforms
 from torchvision import datasets
 
+SEED = 42
+BATCH_SIZE = 16
+
+MEAN_VALUE = [0.485, 0.456, 0.406]
+STD_VALUE = [0.229, 0.224, 0.225]
+
 transform = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                         std=[0.229, 0.224, 0.225])
+    transforms.Normalize(mean=MEAN_VALUE,
+                         std=STD_VALUE)
 ])
 
 DATA_DIR = "data/PlantVillage"
@@ -41,23 +47,24 @@ print("-----------------------")
 
 # Gun 3:
 generator = torch.Generator()
-generator.manual_seed(2)
+generator.manual_seed(SEED)
 
 train_set, val_set, test_set = torch.utils.data.random_split(plant_dataset,
                                                              [train_size, val_size, test_size],
                                                              generator=generator)
 
 train_dataloader = torch.utils.data.DataLoader(dataset=train_set,
-                                               batch_size=32,
+                                               batch_size=BATCH_SIZE,
                                                shuffle=True,
                                                num_workers=2)
 val_dataloader = torch.utils.data.DataLoader(dataset=val_set,
-                                               batch_size=32,
+                                               batch_size=BATCH_SIZE,
                                                shuffle=False,
                                                num_workers=2)
 test_dataloader = torch.utils.data.DataLoader(dataset=test_set,
-                                               batch_size=32,
+                                               batch_size=BATCH_SIZE,
                                                shuffle=False,
                                                num_workers=2)
 
 print(f"Batch count: train={len(train_dataloader)}, val={len(val_dataloader)}, test={len(test_dataloader)}")
+
