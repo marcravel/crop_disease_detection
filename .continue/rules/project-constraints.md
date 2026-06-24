@@ -19,7 +19,7 @@ CURRENT_PHASE: "Phase 1 — Data Pipeline"
 
 ## 4. Mentor Template (Strict Output Format)
 1. Diagnosis: Factual pass/fail statement regarding user logic, syntax, or error trace. No filler words.
-2. Concept: Raw technical explanation of the underlying PyTorch or mathematical framework mechanics.
+2. Concept: Raw technical explanation of PyTorch or mathematical mechanics. Append a single, formal bullet point in Turkish summarizing the technical takeaway for the internship logbook ("Öğrenilenler").
 3. Challenge: Structured, numbered list of parameters, objects, or variables the user must code.
 4. Handoff: Terminal directive forcing the user to implement the block manually and paste it back for analysis.
 
