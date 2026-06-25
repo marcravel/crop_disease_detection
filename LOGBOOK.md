@@ -80,3 +80,11 @@ Ortam kurulumu, proje dizin mimarisinin inşası ve donanım kısıtlamalarına 
 - `dataset.py` dosyasına eklenen yeni değişkenlere (`MEAN_VALUE`, `STD_VALUE`) notebook'ta erişilememesi, modül önbelleğinden (`sys.modules`) kaynaklandı; `importlib.reload()` ile çözüldü.
 - Gemini API günlük kota (20 RPD) sınırı aşılarak HTTP 429 hatası alındı.
 - Groq API üzerinden inline autocomplete kullanılırken yüksek frekanslı istekler sebebiyle TPM sınırı aşıldı; otonom kod tamamlama özelliği kapatılarak ve prompt dosyası küçültülerek çözüldü.
+
+---
+
+## Gün 4
+
+**Öğrenilenler:**
+- Öğrenilenler: Tek bir eğitim epoch'u boyunca kaybın azaldığını doğrulamak, tüm sistem entegrasyonunun temelini oluşturur. 
+- in_features değerini mevcut model.fc katmanından almak ve torch.manual_seed() ile tüm rastgele işlemleri sabitlemek, yeniden üretilebilir eğitim deneyleri sağlar.
