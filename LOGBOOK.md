@@ -85,6 +85,16 @@ Ortam kurulumu, proje dizin mimarisinin inşası ve donanım kısıtlamalarına 
 
 ## Gün 4
 
+**Yapılan:**
+- Notebook: notebooks/02_pytorch_training_tutorial.ipynb
+
 **Öğrenilenler:**
 - Öğrenilenler: Tek bir eğitim epoch'u boyunca kaybın azaldığını doğrulamak, tüm sistem entegrasyonunun temelini oluşturur. 
 - in_features değerini mevcut model.fc katmanından almak ve torch.manual_seed() ile tüm rastgele işlemleri sabitlemek, yeniden üretilebilir eğitim deneyleri sağlar.
+
+---
+
+## Gün 5 - 26-06
+
+**Öğrenilenler:**
+- Bugün PyTorch resmi dokümantasyonundan tensor oluşturmayı inceledim: Python listelerinden, NumPy dizilerinden ve mevcut bir tensörden (ones_like, rand_like) yeni tensörler üretildi.
