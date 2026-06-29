@@ -99,3 +99,8 @@ Ortam kurulumu, proje dizin mimarisinin inşası ve donanım kısıtlamalarına 
 **Öğrenilenler:**
 - Bugün PyTorch resmi dokümantasyonundan tensor oluşturmayı inceledim: Python listelerinden, NumPy dizilerinden ve mevcut bir tensörden (ones_like, rand_like) yeni tensörler üretildi.
 - Tensor oluşturma, şekil/dtype/device sorgulama, GPU’ye taşıma, dilimleme, eleman‑bazlı çarpma, in‑place işlemler ve NumPy‑PyTorch ortak belleği nasıl yönetileceği öğrenildi.
+
+
+--- Hafta Sonu: 27, 28-06
+
+## Gün 6
