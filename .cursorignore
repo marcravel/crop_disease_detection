@@ -1,0 +1,21 @@
+# Add directories or file patterns to ignore during indexing (e.g. foo/ or *.csv)
+# Datasets and Images
+dataset/
+data/
+images/
+*.jpg
+*.jpeg
+*.png
+
+# Python Environment & Cache
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Model Weights (Crucial: These are massive binary files)
+*.pt
+*.pth
+*.onnx
+
+.continue/
