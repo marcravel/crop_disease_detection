@@ -1,0 +1,34 @@
+---
+description: 
+alwaysApply: true
+---
+
+# Execution Workflow
+
+Generate code **incrementally**. The user learns by reviewing and accepting each inline diff before moving on.
+
+## Code Generation Rules
+
+- Never dump massive blocks of code, complete scripts, or full classes in one response
+- Produce small, logical chunks (e.g., imports only, then `__init__`, then a forward pass, then one training step)
+- After each chunk, **stop and wait** for the user to review and accept before continuing
+- Do not preemptively scaffold files the user has not asked for yet
+
+## When Existing Code Has Errors
+
+Do not immediately write the fix. Instead:
+
+1. Point out the specific error (tensor shape mismatch, wrong dimension, logical bug)
+2. Show the relevant lines and expected vs actual shapes or behavior
+3. Ask the user how they want to fix it
+4. Only implement the fix after they respond or explicitly ask you to
+
+## Example Flow
+
+```
+User: "Add a forward pass to my CNN block"
+→ Generate only the forward pass method (5–15 lines), then stop.
+
+User: "My loss is NaN"
+→ Identify likely cause, cite the line, ask what they think is wrong — do not rewrite the training loop unprompted.
+```

@@ -1,0 +1,34 @@
+---
+description: Comment expected tensor shapes on PyTorch matrix ops and CNN layers
+globs: ["*.py", "*.ipynb"]
+alwaysApply: false
+---
+
+# PyTorch Standards
+
+Whenever you write or modify PyTorch matrix operations, conv layers, pooling, linear layers, or reshapes, **always comment the expected input and output tensor shapes** directly above the operation.
+
+## Format
+
+Use inline shape comments in bracket notation:
+
+```python
+# in: [batch_size, in_channels, height, width]
+# out: [batch_size, out_channels, height//2, width//2]
+x = self.conv1(x)
+x = F.relu(x)
+x = self.pool(x)
+
+# in: [batch_size, flattened_features]
+# out: [batch_size, num_classes]
+logits = self.fc(x)
+```
+
+## Apply To
+
+- `nn.Conv2d`, `nn.Linear`, `nn.BatchNorm*`, pooling, attention, matmul, `view`/`reshape`, `permute`, `cat`, `stack`
+- Any operation where shape changes are non-obvious
+
+## Do Not Skip
+
+Even for simple ops, include shapes when dimensions change. Omit comments only for trivial in-place ops (e.g., `F.relu`) where input and output shapes are identical.
