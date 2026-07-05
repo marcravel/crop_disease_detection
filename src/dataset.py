@@ -72,6 +72,8 @@ print(f"{test_size + train_size + val_size} =? {total_len}")
 print("-----------------------")
 
 # Gun 3:
+# We use the random_split function to split the dataset into training, validation, and test sets.
+# We use the Generator class to ensure reproducibility of the split.
 generator = torch.Generator()
 generator.manual_seed(SEED)
 
@@ -82,15 +84,14 @@ train_set, val_set, test_set = torch.utils.data.random_split(plant_dataset,
 train_dataloader = torch.utils.data.DataLoader(dataset=train_set,
                                                batch_size=BATCH_SIZE,
                                                shuffle=True,
-                                               num_workers=2)
+                                               num_workers=4)
 val_dataloader = torch.utils.data.DataLoader(dataset=val_set,
                                                batch_size=BATCH_SIZE,
                                                shuffle=False,
-                                               num_workers=2)
+                                               num_workers=4)
 test_dataloader = torch.utils.data.DataLoader(dataset=test_set,
                                                batch_size=BATCH_SIZE,
                                                shuffle=False,
-                                               num_workers=2)
+                                               num_workers=4)
 
 print(f"Batch count: train={len(train_dataloader)}, val={len(val_dataloader)}, test={len(test_dataloader)}")
-
