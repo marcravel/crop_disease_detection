@@ -108,6 +108,31 @@ Ortam kurulumu, proje dizin mimarisinin inşası ve donanım kısıtlamalarına 
 **Görev:**
 Prob eğitim döngüsünü tamamlama: 3–5 epoch çalıştırıp kaybın düştüğünü doğrulama; prob checkpoint'i arşivleme veya silme.
 
+**Yapılan:**
+- `torch.device("cuda" if torch.cuda.is_available() else "cpu")` kullanılarak GPU/CPU cihaz tespiti gerçekleştirildi ve model `cuda` cihazına taşındı.
+- `tqdm` kütüphanesi yardımıyla tek epoch'luk eğitim döngüsü yazıldı.
+- Eğitim döngüsünde her batch için; görüntü tensörünün $[N, C, H, W]$ formatında `inputs.to(device)` ve etiket tensörünün `labels.to(device)` ile GPU'ya aktarılması, `optimizer.zero_grad()`, `forward pass` gerçekleştirilmesi, `criterion(output, labels)` ile kayıp (loss) hesaplanması, `loss.backward()` ile gradyanların geriye yayılması ve `optimizer.step()` ile ağırlıkların güncellenmesi adımlarını içeren 5 adımlı eğitim boru hattı uygulandı.
+- `loop.set_postfix(loss=...)` ile her batch sonrasında anlık kayıp değeri `tqdm` arayüzü üzerinde canlı olarak gösterildi.
+- Tek epoch sonundaki ortalama kayıp hesaplanarak `0.4739` olarak yazdırıldı.
+- `nvidia-smi` komutu ile `GTX 1050 Ti` üzerinde %97 GPU kullanımı ve `7.67 batch/s` işlem hızı elde edildiği doğrulandı.
+- `src/dataset.py` dosyasındaki dataloader nesnelerinde `num_workers=4` ayarlanarak CPU veri yükleme (`data loading`) darboğazı giderildi.
+
+**Öğrenilenler:**
+- PyTorch eğitim döngüsündeki 5 temel adımın ve işlevlerinin detayları öğrenildi:
+  - `zero_grad()`: Gradyanların her adımda birikmesini (accumulation) engelleyerek her adımda temiz gradyanlarla başlanmasını sağlar.
+  - `forward pass`: Girdileri model katmanlarından geçirerek çıktıları üretir ve hesap grafiğini (computation graph) oluşturur.
+  - `loss.backward()`: Kayıp değerinden geriye doğru gradyanları hesaplayarak model parametrelerinin `.grad` niteliğini doldurur; ağırlıkları güncellemez.
+  - `optimizer.step()`: Biriken `.grad` değerlerini kullanarak optimizer algoritmasına göre model ağırlıklarını günceller.
+- Transfer learning yaklaşımının etkisi tecrübe edildi; ImageNet ağırlıklarıyla başlatılan model sayesinde ilk epoch sonunda ortalama kaybın `0.474` seviyesine kadar gerilediği gözlemlendi.
+- `num_workers` parametresinin değeri ile GPU'nun veriyle beslenme hızı arasındaki doğrudan ilişki ve `nvidia-smi` aracıyla GPU kullanım oranının izlenmesi yöntemi öğrenildi.
+
+**Engeller:**
+- `DataLoader` varsayılan olarak verileri tek çekirdekte yüklediği için CPU tarafında bir veri yükleme (`data loading`) darboğazı oluştu ve GPU (`GTX 1050 Ti`) boşta bekleyerek tam verimle çalışamadı. `num_workers=4` düzenlemesi yapılarak bu veri darboğazı giderildi ve GPU kullanımı %97 seviyesine çıkarıldı.
+- Görev kapsamında 3–5 epoch çalıştırılması hedeflenmiş olsa da, boru hattının ilk doğrulamasında tek epoch üzerinden ilerlendi. Çoklu epoch ve doğrulama süreçleri modelin modüler yapıya kavuşturulmasından sonraya bırakıldı.
+
+**Sonraki Adım:**
+- Model mimarisini modüler hale getirmek üzere `src/model.py` dosyasının oluşturulması, model tanımının oraya taşınması ve sınıf sayısının dinamik olarak ayarlanması.
+
 ## Gün 7 - 30-06
 
 **Görev:**
