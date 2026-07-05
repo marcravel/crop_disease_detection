@@ -105,38 +105,83 @@ Ortam kurulumu, proje dizin mimarisinin inşası ve donanım kısıtlamalarına 
 
 ## Gün 6 - 29-06
 
+**Görev:**
+Prob eğitim döngüsünü tamamlama: 3–5 epoch çalıştırıp kaybın düştüğünü doğrulama; prob checkpoint'i arşivleme veya silme.
+
 ## Gün 7 - 30-06
+
+**Görev:**
+`src/model.py` oluşturma: ResNet18 yükleme, 15 sınıflı `fc` değişimi ve `train.py`'den modüler import.
 
 ## Gün 8 - 01-07
 
+**Görev:**
+`train.py`'ye `argparse`, çok-epoch döngüsü ve `torch.save` checkpoint mantığı ekleme; ilk tam eğitim koşusunu başlatma.
+
 ## Gün 9 - 02-07
 
+**Görev:**
+Tam eğitimi sürdürme; batch size'ı 4GB VRAM sınırına göre ayarlama (`nvidia-smi` ile OOM kontrolü).
+
 ## Gün 10 - 03-07
+
+**Görev:**
+Train/val loss ve accuracy loglama; matplotlib veya CSV ile eğri çizimi, aşırı öğrenme belirtilerini izleme.
 
 --- Hafta Sonu: 04, 05-07
 
 ## Gün 11 - 06-07
 
+**Görev:**
+En iyi validation accuracy checkpoint'ini kaydetme; plato noktasında eğitimi durdurma.
+
 ## Gün 12 - 07-07
+
+**Görev:**
+`src/evaluate.py`: test set accuracy, sınıf bazlı precision/recall/F1 hesaplama.
 
 ## Gün 13 - 08-07
 
+**Görev:**
+Confusion matrix üretme; karışan sınıfları ve olası nedenlerini kısa paragraf olarak yazma.
+
 ## Gün 14 - 09-07
 
+**Görev:**
+PlantDoc test split'inde modeli fine-tune etmeden değerlendirme; baseline accuracy kaydı.
+
 ## Gün 15 - 10-07
+
+**Görev:**
+PlantDoc veri setini indirme/hazırlama; `src/finetune_plantdoc.py` iskeletini oluşturma.
 
 --- Hafta Sonu: 11, 12-07
 
 ## Gün 16 - 13-07
 
+**Görev:**
+PlantDoc üzerinde 5–10 epoch fine-tune; validation loss izleyerek erken durdurma.
+
 ## Gün 17 - 14-07
+
+**Görev:**
+Fine-tune sonrası PlantDoc test setini yeniden değerlendirme; önce/sonra metriklerini `results/plantdoc_before_after.json`'a yazma.
 
 --- Atlanan Gün: 15-07
 
 ## Gün 18 - 16-07
 
+**Görev:**
+README yeniden yazımı; Phase 4–5 sonuçlarını tek `results/` bölümünde birleştirme.
+
 ## Gün 19 - 17-07
+
+**Görev:**
+Ölü kod ve prob notebook'larını temizleme veya `notebooks/experiments/` altına arşivleme.
 
 --- Hafta Sonu: 18, 19-07
 
 ## Gün 20 - 20-07
+
+**Görev:**
+Staj-I sunum/rapor hazırlığı; PLAN.md çıkış koşullarını gözden geçirme — yeni teknik iş planlanmaz.
