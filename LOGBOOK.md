@@ -103,4 +103,40 @@ Ortam kurulumu, proje dizin mimarisinin inşası ve donanım kısıtlamalarına 
 
 --- Hafta Sonu: 27, 28-06
 
-## Gün 6
+## Gün 6 - 29-06
+
+## Gün 7 - 30-06
+
+## Gün 8 - 01-07
+
+## Gün 9 - 02-07
+
+## Gün 10 - 03-07
+
+--- Hafta Sonu: 04, 05-07
+
+## Gün 11 - 06-07
+
+## Gün 12 - 07-07
+
+## Gün 13 - 08-07
+
+## Gün 14 - 09-07
+
+## Gün 15 - 10-07
+
+--- Hafta Sonu: 11, 12-07
+
+## Gün 16 - 13-07
+
+## Gün 17 - 14-07
+
+--- Atlanan Gün: 15-07
+
+## Gün 18 - 16-07
+
+## Gün 19 - 17-07
+
+--- Hafta Sonu: 18, 19-07
+
+## Gün 20 - 20-07
