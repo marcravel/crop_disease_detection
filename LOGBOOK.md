@@ -138,6 +138,24 @@ Prob eğitim döngüsünü tamamlama: 3–5 epoch çalıştırıp kaybın düşt
 **Görev:**
 `src/model.py` oluşturma: ResNet18 yükleme, 15 sınıflı `fc` değişimi ve `train.py`'den modüler import.
 
+**Yapılan:**
+- Modüler mimari tasarımı doğrultusunda `src/model.py` dosyası oluşturuldu ve ResNet18 model tanımı ile `fc` (fully connected) katman değişimi `train.py` dosyasından bu yeni modüle taşındı.
+- Model kurucu fonksiyon olan `get_crop_disease_model`, sınıf sayısını (`num_classes`) parametrik olarak alacak şekilde dinamikleştirildi; böylece sınıf sayısı model dosyası içerisinde hardcoded olarak tanımlanmak yerine, `src.dataset.NUM_CLASSES` üzerinden dinamik olarak beslendi.
+- Model tanımının kendi içinde cihaz ataması (device binding) yapmadığı, yalnızca inşa edilen modeli döndürdüğü teyit edilerek cihaz yönetiminin (`.to(device)`) çağıran taraf olan `train.py` sorumluluğunda kalması sağlandı.
+- `train.py` içerisinde `from src.model import get_crop_disease_model` ifadesi ile modüler import gerçekleştirildi.
+- PyTorch en iyi uygulamaları (best practices) uyarınca, optimizer tanımının doğru cihaz parametreleri üzerinden yapılması için `model.to(device)` işlemi optimizer başlangıç atamasının öncesine çekildi.
+- Yapılan değişikliklerin doğruluğu kod incelemesi ile kontrol edildi ve `python -m src.train` komutu proje kökünden çalıştırılarak eğitim döngüsünün Gün 6 baseline'ı ile birebir aynı şekilde hatasız çalıştığı doğrulandı.
+
+**Öğrenilenler:**
+- `python -m` parametresi kullanılarak bir modülün çalıştırılmasının, Python yorumlayıcısının proje kök dizinini `sys.path` listesine eklemesini sağladığı öğrenildi. Bu sayede modüller içindeki scriptlerin birbirini `src.model` veya `src.dataset` gibi mutlak yollarla sorunsuz import edebildiği kavrandı.
+- Paket içi bağımlılıkların çözümlenmesi esnasında `ModuleNotFoundError` hatalarının önüne geçmek için modülleri script şeklinde doğrudan çalıştırmak yerine, `-m` bayrağı ile çalıştırmanın en güvenli yöntem olduğu deneyimlendi.
+
+**Engeller:**
+- Yaşanmadı.
+
+**Sonraki Adım:**
+- train.py'ye argparse, çok-epoch döngüsü ve torch.save checkpoint mantığı ekleme; ilk tam eğitim koşusunu başlatma.
+
 ## Gün 8 - 01-07
 
 **Görev:**
