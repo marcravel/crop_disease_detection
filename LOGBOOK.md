@@ -161,6 +161,29 @@ Prob eğitim döngüsünü tamamlama: 3–5 epoch çalıştırıp kaybın düşt
 **Görev:**
 `train.py`'ye `argparse`, çok-epoch döngüsü ve `torch.save` checkpoint mantığı ekleme; ilk tam eğitim koşusunu başlatma.
 
+**Yapılan:**
+- `src/train.py` dosyasına `argparse` kütüphanesi entegre edildi ve `--epochs` (default: 15), `--batch-size` (default: 32) ve `--lr` (default: 0.001) argümanlarını alan `parse_args()` fonksiyonu oluşturuldu.
+- Dataloader'lar, optimizer ve eğitim döngüsü parametreleri hardcoded değerler yerine bu komut satırı argümanları ile dinamik olarak başlatılacak şekilde güncellendi.
+- Eğitim döngüsü `args.epochs` boyunca çalışacak şekilde bir dış döngüye alındı ve her epoch için iki farklı faz tanımlandı:
+  - **`train` fazı**: Modelin `train()` moduna alınması, gradyanların sıfırlanması, ileri besleme, kayıp hesaplama, geri yayılım ve optimizer ağırlık güncellemesi gerçekleştirildi.
+  - **`val` fazı**: Modelin `eval()` moduna alınması ve `torch.no_grad()` bloğu içerisinde gradyan hesaplaması yapılmadan doğrulama adımının koşulması sağlandı.
+- Her iki faz için de epoch sonunda kümülatif çalışan kayıp (running loss) ve doğruluk (running accuracy) değerleri hesaplanarak ekrana yazdırılması sağlandı.
+- Doğrulama aşaması sonunda elde edilen doğruluk değeri en yüksek doğruluğu tutan `best_acc` değeri ile karşılaştırılarak, daha yüksek doğruluk elde edildiğinde `best_crop_model.pth` isimli checkpoint dosyası kaydedildi.
+- Checkpoint içerisine `epoch`, `model_state_dict`, `optimizer_state_dict` ve `loss` değerleri bir Python sözlüğü (dict) olarak kaydedildi.
+- Modifiye edilen `train.py` dosyası test amaçlı 1 epoch (`python -m src.train --epochs 1 --batch-size 32`) boyunca çalıştırıldı ve sorunsuz çalıştığı teyit edildi.
+
+**Öğrenilenler:**
+- `argparse` modülü ile parametrik kod geliştirme yöntemleri ve hyphens içeren argümanların (örneğin `--batch-size`) kod içerisinde nasıl `args.batch_size` olarak çözümlendiği öğrenildi.
+- Eğitim ve doğrulama fazlarında modelin sırasıyla `train()` ve `eval()` durumlarına geçirilmesinin, Dropout ve Batch Normalization gibi katmanların davranışları üzerindeki kritik önemi öğrenildi.
+- `torch.no_grad()` bloğunun doğrulama (inference) esnasında bellek tasarrufu sağladığı ve gereksiz gradyan grafiklerinin oluşturulmasını engellediği pekiştirildi.
+- Model ağırlıklarının yanı sıra epoch, optimizer durumu ve kayıp değerlerinin de checkpoint içerisine kaydedilmesinin, eğitimi yarıda bırakıp sonradan devam ettirmek (resume) için ne kadar önemli olduğu kavrandı.
+
+**Engeller:**
+- Yaşanmadı.
+
+**Sonraki Adım:**
+- Tam eğitimi sürdürme; batch size'ı 4GB VRAM sınırına göre ayarlama (`nvidia-smi` ile OOM kontrolü).
+
 ## Gün 9 - 02-07
 
 **Görev:**
