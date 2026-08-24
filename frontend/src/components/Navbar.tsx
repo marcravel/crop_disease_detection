@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Leaf, Cpu, Layers, History, Activity } from 'lucide-react';
+import { Leaf, Cpu, Layers, History, Activity, Github } from 'lucide-react';
 import { getHealthStatus } from '@/services/apiService';
 
 export const Navbar: React.FC = () => {
@@ -90,6 +90,16 @@ export const Navbar: React.FC = () => {
             >
               <Cpu className="w-3.5 h-3.5" />
               <span>API Docs</span>
+            </a>
+
+            <a
+              href="https://github.com/marcravel/crop_disease_detection"
+              target="_blank"
+              rel="noreferrer"
+              className="hidden sm:flex items-center space-x-1 text-xs text-slate-400 hover:text-white transition-colors pl-1"
+              title="GitHub Reposu"
+            >
+              <Github className="w-4 h-4 text-slate-300" />
             </a>
           </div>
 

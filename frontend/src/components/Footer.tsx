@@ -18,7 +18,7 @@ export const Footer: React.FC = () => {
             <span>FastAPI + Next.js + ONNX Runtime</span>
           </span>
           <a
-            href="https://github.com"
+            href="https://github.com/marcravel/crop_disease_detection"
             target="_blank"
             rel="noreferrer"
             className="flex items-center space-x-1 hover:text-brand-300 transition-colors"
