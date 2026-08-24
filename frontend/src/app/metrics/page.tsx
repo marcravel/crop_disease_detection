@@ -49,35 +49,35 @@ export default function MetricsPage() {
             <span>PlantVillage Doğruluğu</span>
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
           </div>
-          <div className="text-3xl font-extrabold text-white font-mono">%99.27</div>
-          <div className="text-[11px] text-emerald-400 font-medium">Laboratuvar Test Seti (2,065 İmaj)</div>
+          <div className="text-3xl font-extrabold text-white font-mono">%96.13</div>
+          <div className="text-[11px] text-emerald-400 font-medium">Saha Simülasyonlu Model (2,065 İmaj)</div>
         </div>
 
         <div className="glass-card p-5 rounded-2xl space-y-2 border-amber-500/30">
           <div className="flex items-center justify-between text-xs text-slate-400">
-            <span>PlantDoc Sıfır-Vuruş</span>
+            <span>Eski Sıfır-Vuruş</span>
             <Zap className="w-4 h-4 text-amber-400" />
           </div>
-          <div className="text-3xl font-extrabold text-amber-400 font-mono">%15.69</div>
-          <div className="text-[11px] text-slate-400">Saha Verisi (İnce Ayarsız İlk Başarım)</div>
+          <div className="text-3xl font-extrabold text-slate-400 font-mono">%15.69</div>
+          <div className="text-[11px] text-slate-400">Çoğullamasız İlk Taban Başarım</div>
         </div>
 
         <div className="glass-card p-5 rounded-2xl space-y-2 border-brand-500/30">
           <div className="flex items-center justify-between text-xs text-slate-400">
-            <span>PlantDoc İnce Ayarlı</span>
+            <span>Yeni Sıfır-Vuruş (Saha)</span>
             <TrendingUp className="w-4 h-4 text-brand-400" />
           </div>
-          <div className="text-3xl font-extrabold text-brand-300 font-mono">%22.55</div>
-          <div className="text-[11px] text-brand-400 font-medium">Transfer Learning Sonrası</div>
+          <div className="text-3xl font-extrabold text-brand-300 font-mono">%26.47</div>
+          <div className="text-[11px] text-brand-400 font-medium">Saha Çoğullamalı Sıfır-Vuruş</div>
         </div>
 
         <div className="glass-card p-5 rounded-2xl space-y-2 border-teal-500/30">
           <div className="flex items-center justify-between text-xs text-slate-400">
-            <span>Adaptasyon Kazancı</span>
+            <span>Saha Genelletirme Artışı</span>
             <ArrowUpRight className="w-4 h-4 text-teal-400" />
           </div>
-          <div className="text-3xl font-extrabold text-teal-300 font-mono">+%6.86</div>
-          <div className="text-[11px] text-teal-400 font-medium">Net Başarım Artışı (Delta)</div>
+          <div className="text-3xl font-extrabold text-teal-300 font-mono">+%10.78</div>
+          <div className="text-[11px] text-teal-400 font-medium">Net Sıfır-Vuruş Artışı (Delta)</div>
         </div>
 
       </div>
@@ -91,8 +91,8 @@ export default function MetricsPage() {
           <div className="space-y-2">
             <h3 className="text-xl font-bold text-white">Laboratuvardan Sahaya Genelletirme Engeli (Domain Shift)</h3>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Laboratuvar ortamında toplanan <b>PlantVillage</b> veri setinde model %99.27 gibi yüksek bir doğruluk elde ederken, gerçek tarla koşullarında çekilen <b>PlantDoc</b> veri setinde başlangıç başarımı %15.69 seviyesinde kalmıştır. Bu durum, yapay zekanın stüdyo arka planlarını ve ışıklandırma düzenlerini ezberlemesinden (Shortcut Learning) kaynaklanmaktadır. 
-              İnce ayar (Fine-Tuning) çalışması ile gerçek saha fotoğrafları üzerinde model eğitilerek test başarımı <b>%22.55</b> seviyesine yükseltilmiştir (+%6.86 delta kazanç).
+              Laboratuvar ortamında toplanan <b>PlantVillage</b> veri setinde model yüksek doğruluk elde ederken, gerçek tarla ortamında çekilen <b>PlantDoc</b> veri setinde başlangıç başarımı <b>%15.69</b> seviyesinde kalmıştır. 
+              Saha şartlarını simüle eden veri çoğullama boru hattı (ColorJitter, RandomCrop, Rotation, Cutout), Erken Durdurma (Early Stopping - val_loss), L2 Weight Decay (1e-4) ve Dropout (p=0.3) uygulanması sonucunda modelin laboratuvar stüdyo arka planı ezberlemesi engellenmiş ve <b>PlantDoc sıfır-vuruş (zero-shot) başarımı %15.69'dan %26.47'ye (+%10.78 net artış) yükseltilmiştir</b>.
             </p>
           </div>
         </div>
@@ -101,17 +101,17 @@ export default function MetricsPage() {
         <div className="space-y-4 pt-2 border-t border-slate-800">
           <div className="space-y-1.5">
             <div className="flex justify-between text-xs font-semibold text-slate-300">
-              <span>PlantVillage Test Doğruluğu (Laboratuvar)</span>
-              <span className="font-mono text-emerald-400">%99.27</span>
+              <span>PlantVillage Test Doğruluğu (Laboratuvar + Saha Çoğullamalı)</span>
+              <span className="font-mono text-emerald-400">%96.13</span>
             </div>
             <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
-              <div className="h-full bg-emerald-500 rounded-full" style={{ width: '99.27%' }} />
+              <div className="h-full bg-emerald-500 rounded-full" style={{ width: '96.13%' }} />
             </div>
           </div>
 
           <div className="space-y-1.5">
             <div className="flex justify-between text-xs font-semibold text-slate-300">
-              <span>PlantDoc Sıfır-Vuruş Taban Başarımı (Saha - İnce Ayarsız)</span>
+              <span>Eski PlantDoc Sıfır-Vuruş Başarımı (Çoğullamasız)</span>
               <span className="font-mono text-amber-400">%15.69</span>
             </div>
             <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
@@ -121,11 +121,11 @@ export default function MetricsPage() {
 
           <div className="space-y-1.5">
             <div className="flex justify-between text-xs font-semibold text-slate-300">
-              <span>PlantDoc İnce Ayarlı Saha Başarımı (Fine-Tuned Transfer Learning)</span>
-              <span className="font-mono text-brand-300">%22.55</span>
+              <span>Yeni PlantDoc Sıfır-Vuruş Başarımı (Saha Çoğullamalı + Erken Durdurmalı Model)</span>
+              <span className="font-mono text-brand-300">%26.47</span>
             </div>
             <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
-              <div className="h-full bg-gradient-to-r from-brand-600 to-brand-400 rounded-full" style={{ width: '22.55%' }} />
+              <div className="h-full bg-gradient-to-r from-brand-600 to-brand-400 rounded-full" style={{ width: '26.47%' }} />
             </div>
           </div>
         </div>

@@ -2,11 +2,11 @@
 Full model training script for crop disease detection.
 
 Handles:
-- Command line argument parsing (--epochs, --batch-size, --lr, --patience)
-- ResNet18 model setup and dynamic GPU memory management
+- Command line argument parsing (--epochs, --batch-size, --lr, --patience, --weight-decay, --field-aug)
+- ResNet18 model setup with Dropout (p=0.3) and dynamic GPU memory management
 - Loss logging to CSV (results/training_log.csv)
-- Learning rate scheduling with ReduceLROnPlateau
-- Early stopping based on validation metrics
+- Learning rate scheduling with ReduceLROnPlateau monitoring val_loss
+- Early stopping based on LOWEST validation loss (not last epoch)
 - Saving complete checkpoint metadata payload (checkpoints/best_crop_model.pth)
 - Automated plot generation (results/learning_curves.png)
 - Exporting TorchScript and ONNX formats for Part 2 web app integration
@@ -31,7 +31,10 @@ def parse_args():
     parser.add_argument('--epochs', type=int, default=15, help='Maximum number of training epochs.')
     parser.add_argument('--batch-size', type=int, default=32, help='Batch size for training.')
     parser.add_argument('--lr', type=float, default=0.001, help='Initial learning rate for Adam optimizer.')
-    parser.add_argument('--patience', type=int, default=4, help='Early stopping patience count.')
+    parser.add_argument('--patience', type=int, default=3, help='Early stopping patience count based on val loss.')
+    parser.add_argument('--weight-decay', type=float, default=1e-4, help='Weight decay L2 regularization.')
+    parser.add_argument('--dropout', type=float, default=0.3, help='Dropout probability before final linear layer.')
+    parser.add_argument('--field-aug', action='store_true', help='Apply field simulation data augmentations to training set.')
     return parser.parse_args()
 
 def main():
@@ -51,28 +54,30 @@ def main():
         data_dir=src.dataset.DATA_DIR,
         batch_size=args.batch_size,
         num_workers=2,
-        seed=src.dataset.SEED
+        seed=src.dataset.SEED,
+        use_field_aug=args.field_aug
     )
     idx_to_class = {v: k for k, v in class_to_idx.items()}
     num_classes = len(class_to_idx)
 
     # Model, Loss, Optimizer & LR Scheduler initialization
-    model = get_crop_disease_model(num_classes=num_classes, pretrained=True)
+    model = get_crop_disease_model(num_classes=num_classes, pretrained=True, dropout_prob=args.dropout)
     model.to(device)
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=args.lr)
+    optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=2)
 
-    best_acc = 0.0
-    best_loss = float('inf')
+    best_val_loss = float('inf')
+    best_val_acc = 0.0
+    best_epoch = 0
     epochs_no_improve = 0
 
     log_history = []
     os.makedirs("checkpoints", exist_ok=True)
     os.makedirs("results", exist_ok=True)
 
-    print(f"Starting training for up to {args.epochs} epochs (Batch Size: {args.batch_size}, Initial LR: {args.lr})...")
+    print(f"Starting training for up to {args.epochs} epochs | Batch Size: {args.batch_size} | Initial LR: {args.lr} | Weight Decay: {args.weight_decay} | Dropout: {args.dropout} | Field Aug: {args.field_aug}")
 
     for epoch in range(1, args.epochs + 1):
         # --- Training Phase ---
@@ -144,19 +149,20 @@ def main():
         # Step LR Scheduler based on validation loss
         scheduler.step(epoch_val_loss)
 
-        # --- Checkpoint & Early Stopping Logic ---
-        if epoch_val_acc > best_acc:
-            print(f" Validation accuracy improved from {best_acc:.4f} to {epoch_val_acc:.4f}. Saving best checkpoint...")
-            best_acc = epoch_val_acc
-            best_loss = epoch_val_loss
+        # --- Early Stopping & Best Checkpoint Logic (tracked by lowest val_loss) ---
+        if epoch_val_loss < best_val_loss:
+            print(f" Validation loss improved from {best_val_loss:.4f} to {epoch_val_loss:.4f} (Acc: {epoch_val_acc:.4f}). Saving best checkpoint at epoch {epoch}...")
+            best_val_loss = epoch_val_loss
+            best_val_acc = epoch_val_acc
+            best_epoch = epoch
             epochs_no_improve = 0
 
             checkpoint_payload = {
                 "epoch": epoch,
                 "model_state_dict": model.state_dict(),
                 "optimizer_state_dict": optimizer.state_dict(),
-                "best_acc": best_acc,
-                "best_loss": best_loss,
+                "best_acc": best_val_acc,
+                "best_loss": best_val_loss,
                 "num_classes": num_classes,
                 "class_to_idx": class_to_idx,
                 "idx_to_class": idx_to_class,
@@ -170,10 +176,10 @@ def main():
             torch.save(checkpoint_payload, "checkpoints/best_crop_model.pth")
         else:
             epochs_no_improve += 1
-            print(f"Validation accuracy did not improve. Early stopping counter: {epochs_no_improve}/{args.patience}")
+            print(f" Validation loss did not improve ({epoch_val_loss:.4f} >= {best_val_loss:.4f}). Early stopping counter: {epochs_no_improve}/{args.patience}")
 
         if epochs_no_improve >= args.patience:
-            print(f"\nEarly stopping triggered after {epoch} epochs of training!")
+            print(f"\nEarly stopping triggered at epoch {epoch}! Best checkpoint was at epoch {best_epoch} with val_loss={best_val_loss:.4f}, val_acc={best_val_acc:.4f}.")
             break
 
     # Save final log CSV and generate plots
@@ -181,14 +187,14 @@ def main():
     plot_learning_curves("results/training_log.csv", "results/learning_curves.png")
 
     # Load best checkpoint before exporting models
-    print("\nLoading best model checkpoint for deployment export...")
+    print(f"\nLoading best model checkpoint from Epoch {best_epoch} (val_loss={best_val_loss:.4f}, val_acc={best_val_acc:.4f}) for deployment export...")
     best_ckpt = torch.load("checkpoints/best_crop_model.pth", map_location=device)
     model.load_state_dict(best_ckpt["model_state_dict"])
 
-    # Export to TorchScript (.pt) and ONNX (.onnx) for Part 2 Web Application Integration
+    # Export to TorchScript (.pt) and ONNX (.onnx)
     export_model_formats(model, device=device, export_dir="checkpoints")
 
-    print("\nTraining and model export pipeline completed successfully!")
+    print(f"\nTraining completed! Best checkpoint saved at Epoch {best_epoch} with Val Loss: {best_val_loss:.4f}, Val Acc: {best_val_acc:.4f}.")
 
 if __name__ == "__main__":
     main()

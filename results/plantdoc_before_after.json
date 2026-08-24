@@ -1,9 +1,9 @@
 {
     "model_architecture": "ResNet18",
     "phase_5_results": {
-        "before_finetuning_zero_shot_accuracy": 0.1568627450980392,
-        "after_finetuning_accuracy": 0.22549019607843138,
-        "accuracy_delta_gain": 0.0686,
+        "before_finetuning_zero_shot_accuracy": 0.2647058823529412,
+        "after_finetuning_accuracy": 0.2647058823529412,
+        "accuracy_delta_gain": 0.0,
         "fine_tuning_epochs": 5,
         "learning_rate": 0.0001
     }
