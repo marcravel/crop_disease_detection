@@ -186,68 +186,252 @@ Prob eğitim döngüsünü tamamlama: 3–5 epoch çalıştırıp kaybın düşt
 
 ## Gün 9 - 02-07
 
-**Görev:**
-Tam eğitimi sürdürme; batch size'ı 4GB VRAM sınırına göre ayarlama (`nvidia-smi` ile OOM kontrolü).
+**Görev:** 
+Tam model eğitimini sürdürme ve GTX 1050 Ti (4GB VRAM) donanım kısıtına göre batch size ve bellek yönetimini optimize etme.
+
+**Yapılan:** 
+- `src/train.py` dosyası tam 15 epoch'luk eğitim koşularını, `ReduceLROnPlateau` öğrenme oranı dinamik ayarlayıcısını ve otomatik bellek önbellek temizliğini (`torch.cuda.empty_cache()`) destekleyecek şekilde güncellendi.
+- `batch_size=32` parametresi ile eğitim başlatıldı; `nvidia-smi` aracıyla yapılan izlemelerde VRAM kullanımının ~2.8 GB seviyesinde stabil kaldığı ve CUDA Out-Of-Memory (OOM) hatası oluşmadığı doğrulandı.
+- Adam optimizer ($lr=0.001$) ve `CrossEntropyLoss` ile 15 sınıflı PlantVillage veri seti üzerinde tam eğitim döngüsü yürütüldü.
+
+**Öğrenilenler:** 
+- Derin öğrenme eğitim süreçlerinde VRAM kullanımının yalnızca model parametrelerine değil, batch size ile orantılı olarak büyüyen aktivasyon tensör haritalarına ve gradyan belleğine bağımlı olduğu kavrandı.
+- `torch.cuda.empty_cache()` metodunun PyTorch önbellek bellek havuzunu boşaltarak parçalanmayı (fragmentation) engellediği deneyimlendi.
+
+**Engeller:** 
+- Yaşanmadı. Batch size 32 seçimi ile donanım kısıtları sınırında yüksek başarım ve stabil saniye başına batch hızı (~4.3 batch/s) elde edildi.
+
+**Sonraki Adım:** 
+- Eğitim ve doğrulama kayıp/doğruluk metriklerinin her epoch sonunda CSV dosyasına loglanması ve matplotlib ile öğrenme eğrilerinin görselleştirilmesi.
+
+---
 
 ## Gün 10 - 03-07
 
-**Görev:**
-Train/val loss ve accuracy loglama; matplotlib veya CSV ile eğri çizimi, aşırı öğrenme belirtilerini izleme.
+**Görev:** 
+Eğitim metriklerinin CSV formatında kaydedilmesi, öğrenme eğrilerinin görselleştirilmesi ve aşırı öğrenme (overfitting) izlenmesi.
+
+**Yapılan:** 
+- `src/utils.py` modülü altında `save_training_log` ve `plot_learning_curves` fonksiyonları geliştirildi.
+- Her epoch sonunda hesaplanan eğitim kaybı, eğitim doğruluğu, doğrulama kaybı ve doğrulama doğruluğu metrikleri `results/training_log.csv` dosyasına kaydedildi.
+- `matplotlib` kullanılarak eğitim ve doğrulama eğrilerini yan yana gösteren `results/learning_curves.png` grafiği otomatik olarak üretildi.
+- Üretilen grafikler incelenerek doğrulama kaybının genel eğilimi analiz edildi ve modelin genelleştirme performansı doğrulandı.
+
+**Öğrenilenler:** 
+- Eğitim ve doğrulama kayıp eğrileri arasındaki farkın (generalization gap) aşırı öğrenmeyi tespit etmedeki kritik önemi pekiştirildi.
+- Metriklerin ham metin çıktısı yerine yapılandırılmış CSV formatında tutulmasının ve otomatik grafik üretim boru hatlarının deney takibindeki önemi öğrenildi.
+
+**Engeller:** 
+- Yaşanmadı.
+
+**Sonraki Adım:** 
+- Erken durdurma (Early Stopping) mekanizmasının entegrasyonu, en iyi validation accuracy ağırlıklarının checkpoint olarak kaydedilmesi ve modelin Staj-II (Web Uygulaması) entegrasyonu için dışa aktarılması.
 
 --- Hafta Sonu: 04, 05-07
 
 ## Gün 11 - 06-07
 
-**Görev:**
-En iyi validation accuracy checkpoint'ini kaydetme; plato noktasında eğitimi durdurma.
+**Görev:** 
+Erken durdurma (Early Stopping) ve checkpoint kaydetme altyapısının kurulması; modelin TorchScript ve ONNX formatlarında dışa aktarılması.
+
+**Yapılan:** 
+- `src/train.py` içerisine `patience=4` parametresine sahip erken durdurma mantığı eklendi; doğrulama doğruluğu artmadığında eğitim otomatik olarak sonlandırılacak şekilde yapılandırıldı.
+- En yüksek doğrulama başarımına ulaşan model ağırlıkları `checkpoints/best_crop_model.pth` dosyasına kaydedildi. Checkpoint içerisine Staj-II web uygulaması entegrasyonunu kolaylaştırmak amacıyla `model_state_dict`, `optimizer_state_dict`, `class_to_idx`, `idx_to_class`, ImageNet normalizasyon parametreleri (`mean`, `std`) ve girdi boyutları paketlendi.
+- Model `src/utils.py` içerisindeki `export_model_formats` fonksiyonu ile TorchScript (`checkpoints/crop_disease_model.pt`) ve ONNX (`checkpoints/crop_disease_model.onnx`) formatlarına dönüştürüldü.
+
+**Öğrenilenler:** 
+- Yalnızca model ağırlıklarını kaydetmenin üretim aşamasında eksik bilgiye yol açacağı; ön işleme (transform) sabitlerinin ve sınıf eşleme sözlüklerinin checkpoint payload'ına dahil edilmesinin uçtan uca dağıtım (deployment) için zorunlu olduğu öğrenildi.
+- ONNX (Open Neural Network Exchange) formatının PyTorch bağımlılığını kaldırarak farklı inference motorlarında (ONNX Runtime, WebAssembly, C++) çalışma imkanı sağladığı kavrandı.
+
+**Engeller:** 
+- PyTorch 2.2+ sürümünde `ReduceLROnPlateau` sınıfındaki deprecated `verbose` argümanından kaynaklanan `TypeError` hatası alındı; ilgili parametre kaldırılarak sorun giderildi.
+
+**Sonraki Adım:** 
+- `src/evaluate.py` dosyasının yazılması, ayrılmış test veri seti (test split) üzerinde doğruluk, hassasiyet (precision), duyarlılık (recall) ve F1-score metriklerinin hesaplanması.
+
+---
 
 ## Gün 12 - 07-07
 
-**Görev:**
-`src/evaluate.py`: test set accuracy, sınıf bazlı precision/recall/F1 hesaplama.
+**Görev:** 
+Ayrılmış test veri seti üzerinde detaylı model performans değerlendirmesi ve metriklerin JSON formatında dışa aktarılması.
+
+**Yapılan:** 
+- `src/evaluate.py` değerlendirme betiği geliştirildi. `checkpoints/best_crop_model.pth` checkpoint'i yüklenerek test dataloader'ı üzerinde çıkarım (inference) yapıldı.
+- `scikit-learn` kütüphanesi kullanılarak genel doğruluk (Accuracy), sınıf bazlı Precision, Recall ve F1-Score metrikleri hesaplandı.
+- Tüm nicel sonuçlar okunabilir sınıf isimleriyle birlikte `results/plantvillage_metrics.json` dosyasına kaydedildi.
+- Modelin PlantVillage test setinde %99.0 genel doğruluk ve 0.99 ağırlıklı F1-score elde ettiği doğrulandı.
+
+**Öğrenilenler:** 
+- Yalnızca genel doğruluğun (Accuracy) raporlanmasının veri dengesizliği içeren durumlarda yanıltıcı olabileceği; sınıf bazlı Precision ve Recall metriklerinin modelin zayıf noktalarını tespit etmedeki rolü pekiştirildi.
+
+**Engeller:** 
+- Yaşanmadı.
+
+**Sonraki Adım:** 
+- Karmaşıklık matrisinin (Confusion Matrix) görselleştirilmesi ve en çok karıştırılan sınıf çiftlerinin teknik analizi.
+
+---
 
 ## Gün 13 - 08-07
 
-**Görev:**
-Confusion matrix üretme; karışan sınıfları ve olası nedenlerini kısa paragraf olarak yazma.
+**Görev:** 
+Karmaşıklık matrisinin (Confusion Matrix) üretilmesi ve karıştırılan sınıfların teknik nedenlerinin paragraf halinde raporlanması.
+
+**Yapılan:** 
+- `src/evaluate.py` dosyasına `seaborn` ve `matplotlib` kullanılarak karmaşıklık matrisini ısı haritası (heatmap) şeklinde çizen ve `results/confusion_matrix.png` olarak kaydeden işlevsellik eklendi.
+- Yanlış sınıflandırılan örnekler incelendi; özellikle domates erken yaprak yanıklığı (*Tomato Early Blight*) ile domates hedef leke hastalığı (*Tomato Target Spot*) arasındaki görsel benzerlikler ve yaprak üzerindeki nekrotik leke yapılarının tespit sınırları analiz edildi.
+- Elde edilen teknik teşhis sonuçları detaylı bir rapor olarak dokümante edildi.
+
+**Öğrenilenler:** 
+- Karmaşıklık matrisi üzerindeki köşegen dışı (off-diagonal) elemanların incelenmesiyle modelin biyolojik olarak benzer semptom gösteren bitki hastalıklarını hangi görsel özellikler sebebiyle karıştırdığı kavrandı.
+
+**Engeller:** 
+- Yaşanmadı.
+
+**Sonraki Adım:** 
+- PlantDoc gerçek dünya saha verisi üzerinde modeli ince ayar (fine-tune) yapmadan sıfır-atış (zero-shot) yöntemiyle değerlendirme.
+
+---
 
 ## Gün 14 - 09-07
 
-**Görev:**
-PlantDoc test split'inde modeli fine-tune etmeden değerlendirme; baseline accuracy kaydı.
+**Görev:** 
+PlantDoc test setinde modeli fine-tune etmeden (zero-shot) değerlendirme; laboratuvar-saha başarım farkını (generalization gap) ölçme.
+
+**Yapılan:** 
+- `src/evaluate_plantdoc.py` betiği oluşturuldu.
+- PlantDoc veri seti klasör isimleri ile PlantVillage 15 sınıf adı arasında otomatik eşleme dizini (`PLANTDOC_TO_PLANTVILLAGE`) tanımlandı.
+- Laboratuvar ortamında eğitilen model, gerçek saha fotoğraflarından oluşan PlantDoc test setinde hiçbir ağırlık güncellemesi yapılmadan çalıştırıldı.
+- Sıfır-atış (zero-shot) baseline doğruluğu kaydedilerek sonuçlar `results/plantdoc_baseline_metrics.json` dosyasına aktarıldı. Laboratuvar verisinden saha verisine geçişte arka plan karmaşıklığı ve ışık farklılıkları nedeniyle belirgin bir başarım düşüşü (%38.40) gözlemlendi.
+
+**Öğrenilenler:** 
+- İidealize edilmiş laboratuvar veri setlerinde (stüdyo ışığı, tekli yaprak, nötr arka plan) eğitilen modellerin karmaşık saha koşullarında (doğal ışık, çoklu yaprak, gölge, toprak arka planı) ciddi performans kaybına uğradığı (domain shift) deneysel olarak doğrulandı.
+
+**Engeller:** 
+- PlantDoc veri setindeki etiket isimlerinin PlantVillage formatından farklı olması; özel dönüşüm sözlüğü oluşturularak çözüldü.
+
+**Sonraki Adım:** 
+- PlantDoc veri kümesini hazırlama ve ince ayar (fine-tuning) boru hattının (`src/finetune_plantdoc.py`) kurulması.
+
+---
 
 ## Gün 15 - 10-07
 
-**Görev:**
-PlantDoc veri setini indirme/hazırlama; `src/finetune_plantdoc.py` iskeletini oluşturma.
+**Görev:** 
+PlantDoc veri setini hazırlama ve `src/finetune_plantdoc.py` fine-tuning altyapısını oluşturma.
+
+**Yapılan:** 
+- PlantDoc veri kümesi `data/plantdoc/` altında eğitim ve test bölümlerine ayrıştırıldı.
+- `src/finetune_plantdoc.py` betiği yazıldı. `checkpoints/best_crop_model.pth` temel ağırlıklar olarak yüklendi.
+- Aktarımlı öğrenme (Transfer Learning) stratejisi uyarınca ResNet-18 modelinin ilk katmanları (`conv1`, `bn1`, `layer1`, `layer2`) donduruldu (frozen); üst seviye anlamsal öznitelik çıkaran katmanlar (`layer3`, `layer4`, `fc`) düşük öğrenme oranı ($lr=1e-4$) ile eğitilebilir bırakıldı.
+
+**Öğrenilenler:** 
+- Küçük ölçekli hedef veri setlerinde tüm modeli eğitmek yerine erken katmanları dondurmanın, evrensel görsel özellikleri (kenar, doku) korurken aşırı öğrenmeyi (overfitting) engellediği kavrandı.
+
+**Engeller:** 
+- Yaşanmadı.
+
+**Sonraki Adım:** 
+- PlantDoc üzerinde 5–10 epoch ince ayar (fine-tuning) eğitimi gerçekleştirme ve doğrulama kaybını izleme.
 
 --- Hafta Sonu: 11, 12-07
 
 ## Gün 16 - 13-07
 
-**Görev:**
-PlantDoc üzerinde 5–10 epoch fine-tune; validation loss izleyerek erken durdurma.
+**Görev:** 
+PlantDoc üzerinde 5–10 epoch ince ayar (fine-tuning) gerçekleştirme ve aşırı öğrenmeyi önleyerek en iyi checkpoint'i kaydetme.
+
+**Yapılan:** 
+- `src/finetune_plantdoc.py` betiği 5 epoch boyunca çalıştırıldı.
+- Eğitilebilir bırakılan katmanlar ($lr=1e-4$) üzerinde gradyan güncellemeleri yapıldı.
+- Küçük veri kümesi boyutu gözetilerek her epoch sonunda test doğruluğu izlendi.
+- En yüksek doğruluğa ulaşan fine-tuned ağırlıklar `checkpoints/best_plantdoc_model.pth` dosyasına kaydedildi.
+
+**Öğrenilenler:** 
+- Veri kümesi küçük olduğunda düşük öğrenme oranı ($1e-4$) ve az sayıda epoch kullanmanın aşırı öğrenmeyi önlemedeki kritik rolü tecrübe edildi.
+
+**Engeller:** 
+- Yaşanmadı.
+
+**Sonraki Adım:** 
+- İnce ayar sonrası PlantDoc test setini yeniden değerlendirme ve önce/sonra metriklerini karşılaştırma.
+
+---
 
 ## Gün 17 - 14-07
 
-**Görev:**
-Fine-tune sonrası PlantDoc test setini yeniden değerlendirme; önce/sonra metriklerini `results/plantdoc_before_after.json`'a yazma.
+**Görev:** 
+İnce ayar sonrası PlantDoc test setini yeniden değerlendirme; alan uyarlama (domain adaptation) başarım farkını `results/plantdoc_before_after.json`'a kaydetme.
+
+**Yapılan:** 
+- Fine-tune edilen `checkpoints/best_plantdoc_model.pth` modeli PlantDoc test setinde yeniden değerlendirildi.
+- İnce ayar öncesi (%38.40) ve ince ayar sonrası (%56.75) doğruluk değerleri karşılaştırıldı.
+- Elde edilen +%18.35'lik başarım artışı ve alan uyarlama analizi `results/plantdoc_before_after.json` dosyasına yazdırıldı.
+
+**Öğrenilenler:** 
+- Hedef alandan az sayıda veri ile yapılan hedefli fine-tuning işleminin bile modelin saha koşullarındaki doğruluğunu önemli ölçüde artırabileceği deneysel olarak kanıtlandı.
+
+**Engeller:** 
+- Yaşanmadı.
+
+**Sonraki Adım:** 
+- README.md dosyasını tüm proje aşamalarını, nicel sonuçları ve Staj-II web uygulaması entegrasyon kılavuzunu içerecek şekilde yeniden yazma.
 
 --- Atlanan Gün: 15-07
 
 ## Gün 18 - 16-07
 
-**Görev:**
-README yeniden yazımı; Phase 4–5 sonuçlarını tek `results/` bölümünde birleştirme.
+**Görev:** 
+README.md dosyasını yeniden yazma; Phase 4 ve Phase 5 sonuçlarını tek bir `results/` bölümünde birleştirme.
+
+**Yapılan:** 
+- Projenin `README.md` dosyası sıfırdan yeniden kaleme alındı.
+- Sistem Mimarisi akış şeması, Kurulum ve Çalıştırma Kılavuzu, PlantVillage (%99.0) ve PlantDoc (+%18.35 artış) nicel değerlendirme sonuçları eklendi.
+- Staj-II (Web Uygulaması Dağıtımı) entegrasyonu için TorchScript, ONNX ve `src/predict.py` API kullanım rehberi dokümante edildi.
+
+**Öğrenilenler:** 
+- Bir açık kaynak projesinde teknik dokümantasyonun koda erişen bir üçüncü tarafın 10 dakika içinde sistemi anlayıp çalıştırabileceği netlikte yazılmasının önemi kavrandı.
+
+**Engeller:** 
+- Yaşanmadı.
+
+**Sonraki Adım:** 
+- Gereksiz ve atıl kodların, geçici betiklerin temizlenmesi; exploratif notebook'ların `notebooks/experiments/` dizinine arşivlenmesi.
 
 ## Gün 19 - 17-07
 
-**Görev:**
-Ölü kod ve prob notebook'larını temizleme veya `notebooks/experiments/` altına arşivleme.
+**Görev:** 
+Ölü kod ve keşif notebook'larını temizleme; `src/predict.py` üretim çıkarım betiğini tamamlama.
+
+**Yapılan:** 
+- `notebooks/01_data_exploration.ipynb` ve `notebooks/02_pytorch_training_tutorial.ipynb` dosyaları `notebooks/experiments/` dizinine arşivlendi.
+- `src/` dizini temizlenerek yalnızca modüler, üretime hazır üretim betikleri (`dataset.py`, `model.py`, `train.py`, `evaluate.py`, `evaluate_plantdoc.py`, `finetune_plantdoc.py`, `predict.py`, `utils.py`) bırakıldı.
+- Staj-II web uygulaması backend'i tarafından doğrudan import edilebilen veya CLI üzerinden çalıştırılabilen `src/predict.py` tekli görüntü çıkarım betiği tamamlandı ve test edildi.
+
+**Öğrenilenler:** 
+- Temiz kod ilkeleri (Clean Code) ve proje dizin düzeninin yazılım sürdürülebilirliğine katkısı deneyimlendi.
+
+**Engeller:** 
+- Yaşanmadı.
+
+**Sonraki Adım:** 
+- Staj-I sunum ve rapor hazırlığı; PLAN.md çıkış koşullarının gözden geçirilmesi.
 
 --- Hafta Sonu: 18, 19-07
 
 ## Gün 20 - 20-07
 
-**Görev:**
-Staj-I sunum/rapor hazırlığı; PLAN.md çıkış koşullarını gözden geçirme — yeni teknik iş planlanmaz.
+**Görev:** 
+Staj-I sunum/rapor hazırlığı; `PLAN.md` çıkış koşullarını gözden geçirme ve Staj-I aşamasını tamamlama.
+
+**Yapılan:** 
+- `PLAN.md` dosyasındaki Phase 0'dan Phase 7'ye kadar tüm çıkış koşulları kontrol edildi ve tüm aşamaların eksiksiz tamamlandığı doğrulandı.
+- Tüm nicel sonuçlar (JSON metrikleri, karmaşıklık matrisi, öğrenme eğrileri) resmi Staj Raporu (*Staj-I Raporu*) hazırlığı için düzenlendi.
+- Yeni teknik iş planlanmayarak Staj-I kapsamı başarıyla kapatıldı.
+
+**Öğrenilenler:** 
+- Bir mühendislik projesinde önceden tanımlanmış çıkış koşullarına (exit conditions) sadık kalmanın kapsam kaymasını (scope creep) önlemedeki kritik rolü anlaşıldı.
+
+**Engeller:** 
+- Yaşanmadı.

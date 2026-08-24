@@ -1,0 +1,6 @@
+{
+    "dataset": "PlantDoc Test Split (Zero-Shot)",
+    "num_samples": 102,
+    "accuracy": 0.1568627450980392,
+    "note": "Baseline accuracy before fine-tuning on real-world field imagery."
+}

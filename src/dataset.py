@@ -3,32 +3,16 @@ Dataset preparation and loading module for crop disease detection.
 This module handles:
 - Loading plant disease images from the PlantVillage dataset
 - Applying image preprocessing (resizing, normalization)
-- Splitting the dataset into training, validation, and test sets
+- Splitting the dataset into training, validation, and test sets (80% / 10% / 10%)
 - Creating data loaders for batch processing during model training and evaluation
-Constants:
-    SEED (int): Random seed for reproducibility (42)
-    BATCH_SIZE (int): Number of samples per batch (16)
-    MEAN_VALUE (list): ImageNet normalization mean values
-    STD_VALUE (list): ImageNet normalization standard deviation values
-    DATA_DIR (str): Path to the PlantVillage dataset directory
-Attributes:
-    plant_dataset: ImageFolder dataset containing all plant disease images
-    NUM_CLASSES (int): Total number of plant disease classes
-    train_dataloader: DataLoader for training set with shuffling enabled
-    val_dataloader: DataLoader for validation set without shuffling
-    test_dataloader: DataLoader for test set without shuffling
-Data Split:
-    - Training: 80% of total dataset
-    - Validation: 10% of total dataset
-    - Testing: 10% of total dataset
 """
 
+import os
 import torch
-from torchvision import transforms
-from torchvision import datasets
+from torchvision import transforms, datasets
 
 SEED = 42
-BATCH_SIZE = 16
+BATCH_SIZE = 32
 
 MEAN_VALUE = [0.485, 0.456, 0.406]
 STD_VALUE = [0.229, 0.224, 0.225]
@@ -36,62 +20,66 @@ STD_VALUE = [0.229, 0.224, 0.225]
 transform = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
-    transforms.Normalize(mean=MEAN_VALUE,
-                         std=STD_VALUE)
+    transforms.Normalize(mean=MEAN_VALUE, std=STD_VALUE)
 ])
 
 DATA_DIR = "data/PlantVillage"
-plant_dataset = datasets.ImageFolder(DATA_DIR, transform)
-NUM_CLASSES = len(plant_dataset.classes)
-print(f"Class numbers: {NUM_CLASSES}")
 
-#Print class names inside the plant_dataset
-# for data in plant_dataset.classes:
-#     print(data)
-# print()
+if os.path.exists(DATA_DIR):
+    plant_dataset = datasets.ImageFolder(DATA_DIR, transform=transform)
+    NUM_CLASSES = len(plant_dataset.classes)
+    class_to_idx = plant_dataset.class_to_idx
+    idx_to_class = {v: k for k, v in class_to_idx.items()}
 
-#Print mapping
-for key, value in plant_dataset.class_to_idx.items():
-    print(f"{key} | idx={value}")
-    
-# data_loader = torch.utils.data.DataLoader(dataset=plant_dataset,
-#                                           batch_size=16,
-#                                           shuffle=True,
-#                                           num_workers=2)
+    total_len = len(plant_dataset)
+    train_size = int(total_len * 0.80)
+    val_size = int(total_len * 0.10)
+    test_size = total_len - (train_size + val_size)
 
-total_len = len(plant_dataset)
-train_size = int(total_len * 0.80)
-val_size = int(total_len * 0.10)
-test_size = total_len - (train_size + val_size)
-print("-----------------------")
-print(f"Total_len: {total_len}")
-print(f"Train_size: {train_size}")
-print(f"val_size: {val_size}")
-print(f"test_size: {test_size}")
-print(f"{test_size + train_size + val_size} =? {total_len}")
-print("-----------------------")
+    generator = torch.Generator()
+    generator.manual_seed(SEED)
 
-# Gun 3:
-# We use the random_split function to split the dataset into training, validation, and test sets.
-# We use the Generator class to ensure reproducibility of the split.
-generator = torch.Generator()
-generator.manual_seed(SEED)
+    train_set, val_set, test_set = torch.utils.data.random_split(
+        plant_dataset, [train_size, val_size, test_size], generator=generator
+    )
 
-train_set, val_set, test_set = torch.utils.data.random_split(plant_dataset,
-                                                             [train_size, val_size, test_size],
-                                                             generator=generator)
+    train_dataloader = torch.utils.data.DataLoader(
+        dataset=train_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=2
+    )
+    val_dataloader = torch.utils.data.DataLoader(
+        dataset=val_set, batch_size=BATCH_SIZE, shuffle=False, num_workers=2
+    )
+    test_dataloader = torch.utils.data.DataLoader(
+        dataset=test_set, batch_size=BATCH_SIZE, shuffle=False, num_workers=2
+    )
+else:
+    plant_dataset = None
+    NUM_CLASSES = 15
+    class_to_idx = {}
+    idx_to_class = {}
+    train_set = val_set = test_set = None
+    train_dataloader = val_dataloader = test_dataloader = None
 
-train_dataloader = torch.utils.data.DataLoader(dataset=train_set,
-                                               batch_size=BATCH_SIZE,
-                                               shuffle=True,
-                                               num_workers=4)
-val_dataloader = torch.utils.data.DataLoader(dataset=val_set,
-                                               batch_size=BATCH_SIZE,
-                                               shuffle=False,
-                                               num_workers=4)
-test_dataloader = torch.utils.data.DataLoader(dataset=test_set,
-                                               batch_size=BATCH_SIZE,
-                                               shuffle=False,
-                                               num_workers=4)
 
-print(f"Batch count: train={len(train_dataloader)}, val={len(val_dataloader)}, test={len(test_dataloader)}")
+def get_dataloaders(data_dir=DATA_DIR, batch_size=32, num_workers=2, seed=SEED):
+    """
+    Creates reproducible DataLoaders for train, val, and test splits.
+    """
+    dataset = datasets.ImageFolder(data_dir, transform=transform)
+    total_len = len(dataset)
+    train_size = int(total_len * 0.80)
+    val_size = int(total_len * 0.10)
+    test_size = total_len - (train_size + val_size)
+
+    gen = torch.Generator()
+    gen.manual_seed(seed)
+
+    tr_set, va_set, te_set = torch.utils.data.random_split(
+        dataset, [train_size, val_size, test_size], generator=gen
+    )
+
+    tr_loader = torch.utils.data.DataLoader(tr_set, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+    va_loader = torch.utils.data.DataLoader(va_set, batch_size=batch_size, shuffle=False, num_workers=num_workers)
+    te_loader = torch.utils.data.DataLoader(te_set, batch_size=batch_size, shuffle=False, num_workers=num_workers)
+
+    return tr_loader, va_loader, te_loader, dataset.class_to_idx
