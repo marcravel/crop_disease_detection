@@ -1,8 +1,9 @@
-# T.C. ÜNİVERSİTESİ MÜHENDİSLİK FAKÜLTESİ
-## BİLGİSAYAR MÜHENDİSLİĞİ BÖLÜMÜ
-### STAJ-II (YAZILIM GELİŞTİRME VE MODEL DAĞITIMI) UYGULAMALI ÇALIŞMA VE STAJ RAPORU
+# T.C. SELÇUK ÜNİVERSİTESİ
+## TEKNOLOJİ FAKÜLTESİ
+### ELEKTRİK-ELEKTRONİK MÜHENDİSLİĞİ BÖLÜMÜ
+#### STAJ-II (YAZILIM GELİŞTİRME VE MODEL DAĞITIMI) UYGULAMALI ÇALIŞMA VE STAJ RAPORU
 
-**Öğrenci Adı Soyadı:** Anjaravel / Marc Ravel  
+**Öğrenci Adı Soyadı:** MARC ANJANIAINA RAVELONTSALAMA  
 **Staj Türü:** Staj-II (Yazılım Geliştirme, Tam Yığın Web ve Yapay Zeka Model Dağıtımı)  
 **Staj Başlangıç - Bitiş Tarihi:** 21 Temmuz 2026 – 17 Ağustos 2026  
 **Proje Adı:** FastAPI ve Next.js Tabanlı ONNX Runtime Destekli Bitki Hastalık Teşhis Web Platformu  

@@ -1,8 +1,9 @@
-# T.C. ÜNİVERSİTESİ MÜHENDİSLİK FAKÜLTESİ
-## BİLGİSAYAR MÜHENDİSLİĞİ BÖLÜMÜ
-### STAJ-I (VERİ BİLİMİ VE YAPAY ZEKA) UYGULAMALI ÇALIŞMA VE STAJ RAPORU
+# T.C. SELÇUK ÜNİVERSİTESİ
+## TEKNOLOJİ FAKÜLTESİ
+### ELEKTRİK-ELEKTRONİK MÜHENDİSLİĞİ BÖLÜMÜ
+#### STAJ-I (VERİ BİLİMİ VE YAPAY ZEKA) UYGULAMALI ÇALIŞMA VE STAJ RAPORU
 
-**Öğrenci Adı Soyadı:** Anjaravel / Marc Ravel  
+**Öğrenci Adı Soyadı:** MARC ANJANIAINA RAVELONTSALAMA  
 **Staj Türü:** Staj-I (Veri Bilimi, Derin Öğrenme ve Bilgisayarlı Görü)  
 **Staj Başlangıç - Bitiş Tarihi:** 21 Haziran 2026 – 20 Temmuz 2026  
 **Proje Adı:** PyTorch Tabanlı Derin Öğrenme ile Bitki Hastalık Teşhisi ve Saha Adaptasyonu  
