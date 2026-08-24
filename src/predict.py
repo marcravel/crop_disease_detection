@@ -20,7 +20,12 @@ from torchvision import transforms
 
 from src.model import get_crop_disease_model
 
-def load_model_from_checkpoint(checkpoint_path="checkpoints/best_crop_model.pth", device=None):
+def load_model_from_checkpoint(checkpoint_path=None, device=None):
+    if checkpoint_path is None:
+        if os.path.exists("checkpoints/best_plantdoc_model.pth"):
+            checkpoint_path = "checkpoints/best_plantdoc_model.pth"
+        else:
+            checkpoint_path = "checkpoints/best_crop_model.pth"
     """
     Loads model architecture and state dict from checkpoint payload.
 
@@ -59,7 +64,7 @@ def load_model_from_checkpoint(checkpoint_path="checkpoints/best_crop_model.pth"
     return model, idx_to_class, transform, device
 
 
-def predict_image(image_path, checkpoint_path="checkpoints/best_crop_model.pth", top_k=3, device=None):
+def predict_image(image_path, checkpoint_path=None, top_k=3, device=None):
     """
     Inference function for single image prediction.
 
