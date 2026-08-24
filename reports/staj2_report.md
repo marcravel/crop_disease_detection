@@ -5,7 +5,7 @@
 
 **Öğrenci Adı Soyadı:** MARC ANJANIAINA RAVELONTSALAMA  
 **Staj Türü:** Staj-II (Yazılım Geliştirme, Tam Yığın Web ve Yapay Zeka Model Dağıtımı)  
-**Staj Başlangıç - Bitiş Tarihi:** 21 Temmuz 2026 – 14 Ağustos 2026 (19 İş Günü)  
+**Staj Başlangıç - Bitiş Tarihi:** 21 Temmuz 2026 – 17 Ağustos 2026 (20 İş Günü)  
 **Proje Adı:** FastAPI ve Next.js Tabanlı ONNX Runtime Destekli Bitki Hastalık Teşhis Web Platformu  
 **Yazılım Mimarisi:** FastAPI (Python 3.12 Backend), Next.js 14 / TypeScript / Tailwind CSS (Frontend), ONNX Runtime, Docker & Docker Compose  
 
@@ -19,20 +19,21 @@ Proje süresince modüler bir **Monorepo** mimarisi benimsenmiş; arka yüz (bac
 
 ---
 
-# 2. GÜNLÜK ÇALIŞMA VE TEKNİK FAALİYET RAPORU (DAYS 1 – 19)
+# 2. GÜNLÜK ÇALIŞMA VE TEKNİK FAALİYET RAPORU (DAYS 1 – 20)
 
 ---
 
 ## Gün 1 — 21-07-2026: Monorepo Mimarisi, Dizin Hiyerarşisi ve Dağıtım Stratejisinin Kurulması
 
 **Problem ve Mühendislik Kısıtları:**  
-Derin öğrenme modellerinin web üzerinde yayınlanmasında ön yüz (frontend) ve arka yüz (backend) projelerinin ayrı depolarda geliştirilmesi versiyon uyumsuzluklarına ve dağıtım karmaşıklıklarına yol açar. Ön yüz ve arka yüz kodlarının aynı depoda, ancak bağımsız modüller olarak geliştirilmesini sağlayan Monorepo yapısının kurulması gerekmektedir. Staj-I çıktısı olan `checkpoints/crop_disease_model.onnx` modeli doğrudan backend servisine bağlanmalıdır.
+Derin öğrenme modellerinin üretim ortamlarında yayınlanmasında en yaygın mimari hata, kullanıcı arayüzü (frontend) ile yapay zeka servis kütüphanelerini aynı devasa bağımlılık havuzunda toplamak veya iki ayrı bağımsız Git deposuna (polyrepo) bölmektir. Polyrepo yaklaşımı, API kontratı (schema) güncellendiğinde her iki depoda ayrı ayrı commit atılmasını gerektirir ve sürümler arası uyumsuzluklara yol açar. Projenin tek bir Git reposu altında, ancak bağımsız alt modüller halinde yönetildiği **Monorepo** mimarisi kurulmalıdır. Staj-I çıktısı olan `checkpoints/crop_disease_model.onnx` yapay zeka varlığı (model artifact) doğrudan arka yüz servisine bağlanmalıdır.
 
 **Alternatif Analizi ve Seçim Gerekçesi:**  
-Ön yüz ve arka yüz kodlarını iki farklı Git deposunda (polyrepo) tutmak veya tek bir monorepo deposunda birleştirmek seçenekleri değerlendirilmiştir. Polyrepo mimarisinde API şeması değişikliklerinde iki depoda senkronize commit atılması zorunludur. Monorepo mimarisi ise tüm mimari değişiklikleri tek bir commit ile izlenebilir kıldığı ve Docker Compose yapılandırmasını kolaylaştırdığı için tercih edilmiştir.
+1. **Polyrepo (Ayrı Depolar):** Frontend ve backend iki ayrı depoda tutulur. Ancak API veri modellerinde yapılan bir değişiklik her iki depoda manuel senkronizasyon gerektirir ve Docker Compose konteyner orkestrasyonunu zorlaştırır.
+2. **Monorepo (Tek Depo, Modüler Klasörler):** Ön yüz, arka yüz ve model varlıkları tek bir kök dizinde (`crop-disease-detector/`) toplanır. Sürüm takibi tek bir commit noktası üzerinden sağlanır. Docker ortamı tek bir root `docker-compose.yml` ile yönetilebilir. Bu esneklik ve sürdürülebilirlik nedeniyle Monorepo mimarisi tercih edilmiştir.
 
 **Uygulanan Yöntem ve Teknik Detaylar:**  
-Proje kök dizininde FastAPI servislerini barındıracak `backend/` ve Next.js kullanıcı arayüzünü barındıracak `frontend/` klasörleri oluşturulmuştur. Staj-II çalışma takvimi 21 Temmuz – 14 Ağustos 2026 tarihleri arasında 19 iş günü olacak şekilde planlanmıştır.
+Proje kök dizininde FastAPI servislerini barındıracak `backend/` ve Next.js kullanıcı arayüzünü barındıracak `frontend/` klasörleri oluşturulmuştur. Staj-II çalışma takvimi 21 Temmuz – 17 Ağustos 2026 tarihleri arasında 20 iş günü olacak şekilde planlanmıştır. `checkpoints/crop_disease_model.onnx` dosyası backend servisinin erişebileceği ortak konuma kopyalanmıştır.
 
 [EKRAN GÖRÜNTÜSÜ: monorepo_structure — backend/ ve frontend/ monorepo dizin mimarisi]
 
@@ -42,26 +43,36 @@ crop-disease-detector/
 │   └── crop_disease_model.onnx   # Staj-I ONNX Model Artifact
 ├── backend/                      # Python FastAPI Backend
 │   ├── app/
+│   │   ├── api/
+│   │   ├── core/
+│   │   ├── schemas/
+│   │   └── services/
 │   └── tests/
 └── frontend/                     # Next.js / TypeScript Frontend
     └── src/
+        ├── app/
+        ├── components/
+        └── services/
 ```
 
 **Elde Edilen Sonuçlar ve Mühendislik Çıkarımları:**  
-Monorepo dizin mimarisi başarıyla kurulmuş, ön yüz ve arka yüz bağımsızlığı korunarak tek merkezden sürdürülebilir kod versiyonlaması sağlanmıştır.
+Monorepo dizin mimarisi başarıyla kurulmuş, ön yüz ve arka yüz bağımsızlığı korunarak tek merkezden sürdürülebilir kod versiyonlaması sağlanmıştır. Modüler yapı sayesinde gelecekte mobil uygulama veya yeni mikroservislerin eklenmesi kolaylaşmıştır.
 
 ---
 
 ## Gün 2 — 22-07-2026: FastAPI Bağımlılıklarının Tanımlanması, Yapılandırma Modülü (`config.py`) ve CORS Yapılandırması
 
 **Problem ve Mühendislik Kısıtları:**  
-Web servislerinde dosya yollarının ve model parametrelerinin kod içerisine sabit olarak yazılması (hardcode), ortam değişikliklerinde kırılmalara neden olur. Ayrıca farklı portlarda çalışan ön yüz (Port 3000) ile arka yüz (Port 8000) arasındaki HTTP isteklerinin tarayıcılar tarafından engellenmemesi için Güvenli Çapraz Orijin Kaynak Paylaşımı (CORS) politikalarının doğru yapılandırılması gerekmektedir.
+Web servislerinde dosya yollarının, API versiyon numaralarının ve ortam değişkenlerinin kod içerisinde sabit (hardcoded) olarak yazılması, uygulamanın farklı sunucularda veya Docker konteynerlerinde çalışmasını engeller. Ayrıca web tarayıcılarının güvenlik politikaları gereği, varsayılan olarak farklı portlarda çalışan ön yüz (Port 3000) ile arka yüz (Port 8000) arasındaki HTTP istekleri engellenir (Same-Origin Policy). Güvenli Çapraz Orijin Kaynak Paylaşımı (CORS) politikalarının doğru yapılandırılması zorunludur.
 
 **Alternatif Analizi ve Seçim Gerekçesi:**  
-Flask, Django REST Framework ve FastAPI karşılaştırılmıştır. Flask performans olarak daha yavaş kalmakta, Django ise mikroservis yapısı için fazla ağır gelmektedir. FastAPI, Asenkron Sunucu Ağ Arabirimi (ASGI / `uvicorn`) desteği, otomatik OpenAPI dokümantasyonu üretimi ve yüksek istek başarım kapasitesi nedeniyle seçilmiştir.
+Python tarafında web çerçevesi olarak **Flask**, **Django REST Framework** ve **FastAPI** değerlendirilmiştir:
+- **Flask:** Çok hafif olmasına karşın asenkron (async/await) desteğinin olmaması ve Pydantic veri doğrulama entegrasyonunun eksikliği nedeniyle elenmiştir.
+- **Django:** Monolitik yapısı ve ağır veritabanı bağımlılıkları nedeniyle mikroservis yapımıza uygun bulunmamıştır.
+- **FastAPI:** Asenkron Asynchronous Server Gateway Interface (ASGI - `uvicorn`) üzerine kurulu olması, saniyede binlerce isteği işleyebilmesi, varsayılan Pydantic ve OpenAPI (Swagger UI) desteği sunması nedeniyle oy birliğiyle seçilmiştir.
 
 **Uygulanan Yöntem ve Teknik Detaylar:**  
-`backend/requirements.txt` içerisine `fastapi`, `uvicorn`, `onnxruntime`, `pillow`, `pydantic` ve `pytest` eklenmiştir. Ortam değişkenlerini ve model yollarını merkezi olarak yöneten `backend/app/config.py` yazılmıştır. `backend/main.py` içerisinde FastAPI ana uygulaması başlatılmış ve `CORSMiddleware` yapılandırılmıştır.
+`backend/requirements.txt` dosyası oluşturularak bağımlılıklar tanımlanmıştır. Ortam değişkenlerini ve konfigürasyonu merkezi olarak yöneten `backend/app/config.py` modülü yazılmıştır. `backend/main.py` içerisinde FastAPI ana uygulaması başlatılmış ve `CORSMiddleware` yapılandırılmıştır.
 
 [EKRAN GÖRÜNTÜSÜ: backend/app/config.py — Settings sınıfı, model yolları ve CORS yapılandırması]
 
@@ -92,10 +103,12 @@ settings = Settings()
 ## Gün 3 — 23-07-2026: ONNX Runtime Çıkarım Servisi Mimarisi ve Yürütme Sağlayıcısı Yönetimi (`onnx_service.py`)
 
 **Problem ve Mühendislik Kısıtları:**  
-PyTorch modellerinin web sunucularında doğrudan çalıştırılması yüksek RAM kullanımı ve ağır kütüphane bağımlılıkları getirmektedir. C++ optimizasyonlu ONNX Runtime motoru ile modellerin bağımsız çalıştırılması hedeflenmiştir. Donanımda GPU mevcutsa `CUDAExecutionProvider`, aksi halde sorunsuz şekilde `CPUExecutionProvider` moduna geçiş yapan esnek bir servis sınıfı yazılmalıdır.
+PyTorch modellerinin üretim web sunucularında doğrudan `.pth` olarak çalıştırılması, sunucuya birkaç gigabaytlık PyTorch, CUDA ve Torchvision kütüphanelerinin yüklenmesini gerektirir. Bu durum bellek kullanımını artırır ve sunucu başlatma süresini uzatır. C++ optimizasyonlu **ONNX Runtime** motoru kullanılarak çıkarım süresi milisaniyelere düşürülmeli ve PyTorch kütüphane bağımlılığı backend servisinden tamamen kaldırılmalıdır. Donanımda GPU mevcutsa `CUDAExecutionProvider`, aksi halde `CPUExecutionProvider` moduna dinamik geçiş sağlanmalıdır.
 
 **Alternatif Analizi ve Seçim Gerekçesi:**  
-Triton Inference Server, TorchScript C++ LibTorch ve ONNX Runtime alternatifleri incelenmiştir. Triton kısıtlı kaynaklara sahip sunucularda aşırı overhead yaratmaktadır. ONNX Runtime hem hafifliği hem de Python/C++ bindings esnekliği ile en performanslı çıkarım motoru olarak seçilmiştir.
+1. **PyTorch Native Inference (`torch.load`):** Ağır kütüphane boyutu (2GB+) ve yüksek RAM tüketimi nedeniyle elenmiştir.
+2. **TorchScript C++ LibTorch:** Performanslı olmasına karşın Python tarafında kurulum ve bindings karmaşıklığı yüksektir.
+3. **ONNX Runtime:** C++ altyapısı ile çok hızlıdır, hafiftir ve CUDA/CPU yürütme sağlayıcılarını (Execution Providers) otomatik yönetir. Bu sebeplerle seçilmiştir.
 
 **Uygulanan Yöntem ve Teknik Detaylar:**  
 `backend/app/services/onnx_service.py` modülü altında `ONNXInferenceService` sınıfı geliştirilmiştir. `onnxruntime.InferenceSession` nesnesi başlatılarak model tensör girdi (`input`) ve çıktı (`output`) isimleri sorgulanmıştır.
@@ -127,10 +140,10 @@ ONNX Runtime oturumu başarıyla başlatılmış, PyTorch kütüphanesine ihtiya
 ## Gün 4 — 24-07-2026: İstemci İmaj Ön İşleme Boru Hattı ve Nümerik Kararlı Softmax Hesaplaması
 
 **Problem ve Mühendislik Kısıtları:**  
-İstemciden ham bayt (bytes) olarak gelen görsellerin ONNX modelinin beklediği $[1, 3, 224, 224]$ boyutlu normalize edilmiş float32 matris biçimine getirilmesi gerekir. Ayrıca modelin ürettiği ham logit çıktılarını %0-100 arası olasılığa dönüştürürken sayısal taşmaları (overflow) önleyen kararlı bir Softmax fonksiyonu uygulanmalıdır.
+İstemciden ham ikili bayt (bytes) olarak gelen görsellerin ONNX modelinin beklediği $[1, 3, 224, 224]$ boyutlu normalize edilmiş float32 matris biçimine getirilmesi gerekir. Görsellerin RGB renk kanallarının Staj-I'de hesaplanan ImageNet ortalama (`[0.485, 0.456, 0.406]`) ve standart sapma (`[0.229, 0.224, 0.225]`) değerleriyle piksel seviyesinde normalize edilmesi şarttır. Ayrıca modelin ürettiği ham logit çıktılarını %0-100 arası olasılığa dönüştürürken büyük sayılarda sayısal taşmaları (overflow) önleyen kararlı bir Softmax fonksiyonu yazılmalıdır.
 
 **Alternatif Analizi ve Seçim Gerekçesi:**  
-Ön işlemeyi OpenCV ile yapmak yerine Pillow ve Numpy kullanmak tercih edilmiştir. Pillow bellek yönetimi ve RGB renk kanalı sıralamasında OpenCV'nin BGR karmaşasına sebep olmaması nedeniyle daha güvenli bulunmuştur.
+Görsel işlemeyi OpenCV veya Pillow (PIL) ile yapma seçenekleri incelenmiştir. OpenCV görselleri varsayılan olarak BGR formatında açtığı için RGB dönüşümünün unutulması ciddi tahmin hatalarına yol açmaktadır. Pillow doğrudan RGB formatında çalıştığı ve bellek dostu olduğu için tercih edilmiştir.
 
 **Uygulanan Yöntem ve Teknik Detaylar:**  
 `onnx_service.py` içerisinde `preprocess_image` ve `softmax` fonksiyonları yazılmıştır. Ham görsel Pillow ile açılmış, RGB formata çevrilmiş, `224x224` boyutuna getirilmiş, ImageNet ortalama ve standart sapma değerleriyle normalize edilerek NCHW matris biçimine dönüştürülmüştür.
@@ -161,10 +174,10 @@ def softmax(x: np.ndarray) -> np.ndarray:
 ## Gün 5 — 27-07-2026: Tekli Tahmin REST Endpoint'i ve Pydantic Doğrulama Şemaları (`POST /api/v1/predict`)
 
 **Problem ve Mühendislik Kısıtları:**  
-İstemciden gelen HTTP multipart/form-data görsel isteklerini kabul eden, veri tiplerini doğrulayan ve yapılandırılmış JSON yanıtı dönen RESTful endpoint'in geliştirilmesi gerekmektedir. İstemciye milisaniye cinsinden çıkarım süresinin de sunulması hedeflenmiştir.
+İstemciden gelen HTTP multipart/form-data görsel isteklerini kabul eden, veri tiplerini ve dosya formatlarını (JPG/PNG) doğrulayan ve yapılandırılmış JSON yanıtı dönen RESTful endpoint'in geliştirilmesi gerekmektedir. İstemciye tahmin sonucunun yanı sıra milisaniye cinsinden çıkarım süresinin de (`latency_ms`) sunulması hedeflenmiştir.
 
 **Alternatif Analizi ve Seçim Gerekçesi:**  
-JSON payload içinde Base64 kodlanmış görsel almak yerine `UploadFile` (multipart/form-data) kullanılması tercih edilmiştir. Base64 kodlaması veri boyutunu %33 oranında artırdığı için doğrudan ikili (binary) dosya akışı daha performanslı bulunmuştur.
+Görselleri Base64 metni olarak JSON payload içerisinde göndermek veya `UploadFile` (multipart/form-data) kullanmak seçenekleri değerlendirilmiştir. Base64 kodlaması veri boyutunu %33 oranında büyüterek ağ gecikmesini artırdığı için doğrudan ikili (binary) multipart aktarımı tercih edilmiştir.
 
 **Uygulanan Yöntem ve Teknik Detaylar:**  
 `backend/app/schemas/predict.py` modülünde `SinglePredictionResponse` ve `PredictionItem` Pydantic şemaları tanımlanmıştır. `backend/app/api/v1/endpoints/predict.py` dosyasına `POST /api/v1/predict` endpoint'i eklenmiştir.
@@ -477,7 +490,7 @@ Uygulamanın farklı sunucu ortamlarında bağımlılık hatası olmaksızın te
 
 [EKRAN GÖRÜNTÜSÜ: frontend/Dockerfile — Node 20-alpine çok aşamalı derleme Dockerfile]
 
-[EKRAN GÖRÜNTÜSÜ: docker-compose.yml — Backend ve Frontend servislerinin Docker Compose orkestrasyonu]
+[EKRAN GÖRÜNTÜSÜ: docker-compose.yml — Backend me Frontend servislerinin Docker Compose orkestrasyonu]
 
 ```yaml
 # docker-compose.yml orkestrasyon dosyası
@@ -500,7 +513,36 @@ services:
 ```
 
 **Elde Edilen Sonuçlar ve Mühendislik Çıkarımları:**  
-`docker compose up --build` komutu ile tüm sistemin sorunsuz konteynerize çalıştığı doğrulanarak Staj-II tamamlanmıştır.
+`docker compose up --build` komutu ile tüm sistemin sorunsuz konteynerize çalıştığı doğrulanmıştır.
+
+---
+
+## Gün 20 — 17-08-2026: Uçtan Uca Sistem Denetimi, LOGBOOK_STAJ2.md Doğrulanması, GitHub Repozituvar Senkronizasyonu ve Staj-II Resmi Kapanışı
+
+**Problem ve Mühendislik Kısıtları:**  
+Staj-II süresince geliştirilen FastAPI backend servisleri, ONNX çıkarım motoru, Next.js frontend arayüzü, Docker konteynerleştirme bileşenleri ve otomatik test paketlerinin üretim ortamlarında hatasız ve tam performansla çalıştığının doğrulanması; günlük staj seyir defterinin (`LOGBOOK_STAJ2.md`) eksiksiz denetlenmesi ve tüm yazılım varlıklarının uzaktan Git repozituvarına (`https://github.com/marcravel/crop_disease_detection.git`) pushed edilmesi gerekmektedir.
+
+**Uygulanan Yöntem ve Teknik Detaylar:**  
+Stajın son gününde, projeye ait tüm bileşenler sırasıyla uçtan uca denetlenmiştir. 
+1. `backend/tests/test_predict_api.py` entegrasyon test paketi tekrar çalıştırılarak `4/4 passed` (%100 başarı) teyit edilmiştir.
+2. Next.js istemci derlemesi `npm run build` ile koşturulmuş, tüm dinamik ve statik sayfaların (`/`, `/batch`, `/history`, `/metrics`) sıfır tür/lint hatasıyla derlendiği doğrulanmıştır.
+3. `LOGBOOK_STAJ2.md` dosyasındaki 20 günlük teknik kayıtlar denetlenmiş ve Staj-II çıkış koşulları kontrol edilmiştir.
+4. Git çalışma ağacı temizlenmiş, tüm yeni kaynak kodlar ve dokümanlar `origin/main` dalına đẩy edilmiştir.
+
+[EKRAN GÖRÜNTÜSÜ: terminal — git status ve git push origin main onay ekranı]
+
+[EKRAN GÖRÜNTÜSÜ: LOGBOOK_STAJ2.md — 20 günlük staj seyir defteri ve tamamlanan görevler kontrol listesi]
+
+```bash
+# Son doğrulama ve Git senkronizasyonu
+PYTHONPATH=. pytest backend/tests/test_predict_api.py
+cd frontend && npm run build
+git status
+git push origin main
+```
+
+**Elde Edilen Sonuçlar ve Mühendislik Çıkarımları:**  
+Staj-II kapsamındaki tüm yazılım geliştirme, API tasarımı, web ön yüz entegrasyonu, ONNX model dağıtımı ve konteynerleştirme hedefleri eksiksiz olarak başarıyla tamamlanmış; projenin üretim ortamında yayına hazır olduğu teyit edilerek Staj-II resmi olarak kapatılmıştır.
 
 ---
 
