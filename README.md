@@ -6,7 +6,6 @@
 ![Next.js](https://img.shields.io/badge/Next.js-14%2B-000000?style=for-the-badge&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.3%2B-3178C6?style=for-the-badge&logo=typescript)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4%2B-38BDF8?style=for-the-badge&logo=tailwindcss)
-![Docker](https://img.shields.io/badge/Docker-Supported-2496ED?style=for-the-badge&logo=docker)
 
 ## 📌 Project Overview
 This repository contains the complete end-to-end implementation for **Internship Part 1 (Staj-I: Model Engineering & Fine-Tuning)** and **Internship Part 2 (Staj-II: Web Application & Production Deployment)** of the **Crop Disease Detection Platform**.
@@ -15,87 +14,52 @@ The platform enables farmers and agricultural engineers to upload leaf imagery o
 
 ---
 
-## 🏗️ System Architecture & Monorepo Layout
-
-```
-crop-disease-detector/
-├── LOGBOOK.md                    # Staj-I Daily Logbook (Turkish)
-├── LOGBOOK_STAJ2.md              # Staj-II Daily Logbook (Turkish)
-├── PLAN.md                       # Staj-I Phase Plan
-├── README.md                     # Main Repository Documentation
-├── docker-compose.yml            # Unified Docker Deployment Manifest
-├── checkpoints/                  # Staj-I Deep Learning Artifacts
-│   ├── best_crop_model.pth       # PyTorch Checkpoint with Payload Metadata
-│   ├── crop_disease_model.onnx   # Production Model served by ONNX Runtime
-│   └── crop_disease_model.pt     # TorchScript Traced Export
-├── backend/                      # Staj-II FastAPI REST API Service
-│   ├── main.py                   # FastAPI Application Entrypoint & CORS setup
-│   ├── requirements.txt          # Python dependencies
-│   ├── Dockerfile                # Backend Docker Container
-│   ├── app/
-│   │   ├── config.py             # Global configurations & paths
-│   │   ├── schemas/              # Pydantic Request/Response Data Models
-│   │   ├── services/
-│   │   │   ├── onnx_service.py   # ONNX Runtime Inference Session & Preprocessing
-│   │   │   └── disease_db.py     # 15-Class Agricultural Knowledge Base
-│   │   └── api/v1/               # REST API Endpoints (/predict, /batch, /health, /disease)
-│   └── tests/
-│       └── test_predict_api.py   # Pytest Integration Suite
-└── frontend/                     # Staj-II Next.js / TypeScript Web App
-    ├── package.json
-    ├── tailwind.config.js
-    ├── Dockerfile                # Frontend Docker Container
-    └── src/
-        ├── app/                  # Next.js App Router Pages (Home, Batch, History)
-        ├── components/           # UI Components (Navbar, Uploader, Results, Treatment, History)
-        └── services/             # Axios API Client (`apiService.ts`)
-```
-
----
-
 ## 🚀 Quick Start & Execution Guide
 
-### Option 1: Docker Compose Deployment (Recommended)
-Launch the entire system (FastAPI backend + Next.js frontend) with a single command:
+### Option 1: Native Execution (Recommended — Fast & No Sudo Required)
 
+#### Terminal 1: Launch FastAPI Backend (ONNX Runtime)
 ```bash
-# Build and run containerized stack
-docker compose up --build
+# From repository root directory
+source venv/bin/activate
+PYTHONPATH=. uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
 ```
-- **Frontend App:** `http://localhost:3000`
 - **Backend API & Swagger Docs:** `http://localhost:8000/docs`
 
----
-
-### Option 2: Local Development Setup
-
-#### 1. Backend Setup (FastAPI + ONNX Runtime)
-```bash
-# Navigate to repository root
-cd crop-disease-detector
-
-# Activate Python virtual environment
-source venv/bin/activate
-
-# Run FastAPI backend via Uvicorn
-uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
-```
-
-#### 2. Run Backend Pytest Integration Suite
-```bash
-PYTHONPATH=. pytest backend/tests/test_predict_api.py
-```
-
-#### 3. Frontend Setup (Next.js + TypeScript + Tailwind)
+#### Terminal 2: Launch Next.js Frontend App
 ```bash
 # Navigate to frontend folder
 cd frontend
-
-# Install npm dependencies
-npm install
-
-# Start Next.js development server
 npm run dev
+```
+- **Web App Dashboard:** `http://localhost:3000`
+
+---
+
+### Option 2: Docker Execution
+
+If running Docker on Linux, ensure user permissions or use `sudo`:
+
+```bash
+# 1. Build and run Backend container
+sudo docker build -t crop_disease_backend -f backend/Dockerfile .
+sudo docker run -d -p 8000:8000 --name crop_backend crop_disease_backend
+
+# 2. Build and run Frontend container
+sudo docker build -t crop_disease_frontend -f frontend/Dockerfile .
+sudo docker run -d -p 3000:3000 --name crop_frontend crop_disease_frontend
+```
+
+*Note: To install `docker compose` plugin on Ubuntu:*
+```bash
+sudo apt-get update && sudo apt-get install -y docker-compose-v2
+```
+
+---
+
+## 🧪 Run Backend Automated Tests
+```bash
+PYTHONPATH=. pytest backend/tests/test_predict_api.py
 ```
 
 ---
