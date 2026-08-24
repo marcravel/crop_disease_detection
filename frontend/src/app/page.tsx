@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { ImageUploader } from '@/components/ImageUploader';
 import { PredictionResult } from '@/components/PredictionResult';
 import { DiseaseDetailCard } from '@/components/DiseaseDetailCard';
@@ -67,15 +68,17 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="glass-card p-4 rounded-xl flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0">
+        <Link href="/metrics" className="glass-card p-4 rounded-xl flex items-center space-x-3 hover:border-brand-500/50 transition-all cursor-pointer group">
+          <div className="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-sm font-bold text-white">%99.27 Doğruluk</div>
-            <div className="text-[11px] text-slate-400">ResNet-18 Model Başarımı</div>
+            <div className="text-sm font-bold text-white flex items-center space-x-1">
+              <span>%99.27 Lab / %22.55 Saha</span>
+            </div>
+            <div className="text-[11px] text-brand-300">Model Metriklerini İncele →</div>
           </div>
-        </div>
+        </Link>
 
         <div className="glass-card p-4 rounded-xl flex items-center space-x-3">
           <div className="w-10 h-10 rounded-lg bg-teal-500/20 text-teal-400 flex items-center justify-center flex-shrink-0">

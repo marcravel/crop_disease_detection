@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Leaf, Cpu, Layers, History, Activity, Github } from 'lucide-react';
+import { Leaf, Cpu, Layers, History, Activity, Github, BarChart3 } from 'lucide-react';
 import { getHealthStatus } from '@/services/apiService';
 
 export const Navbar: React.FC = () => {
@@ -23,6 +23,7 @@ export const Navbar: React.FC = () => {
   const navLinks = [
     { href: '/', label: 'Tekli Teşhis', icon: Leaf },
     { href: '/batch', label: 'Toplu Analiz', icon: Layers },
+    { href: '/metrics', label: 'Model Metrikleri', icon: BarChart3 },
     { href: '/history', label: 'Geçmiş Analizler', icon: History },
   ];
 
